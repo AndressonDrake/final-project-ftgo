@@ -26,7 +26,9 @@ import (
 )
 
 var (
-	MedicineUsecase domain.MedicineUsecase
+	MedicineUsecase      domain.MedicineUsecase
+	AppointmentUsecase   domain.AppointmentUsecase
+	MedicalRecordUsecase domain.MedicalRecordUsecase
 )
 
 // @title Core
@@ -70,16 +72,56 @@ func main() {
 	rdb, err := config.ConnectRedis(REDIS_HOST, REDIS_PASSWORD, REDIS_PORT)
 
 	medicineRepository := repository.MedicineRepository(db)
+	appointmentRepository := repository.AppointmentRepository(db)
+	medicalRecordRepository := repository.MedicalRecordRepository(db)
+	patientRepository := repository.PatientRepository(db)
+	prescriptionRepository := repository.PrescriptionRepository(db)
+	paymentRepository := repository.PaymentRepository(db)
+	icd10Repository := repository.ICD10Repository(db)
+	diseaseMonitoringRepository := repository.DiseaseMonitoringRepository(db)
+	healthNewsRepository := repository.HealthNewsRepository(db)
 
 	MedicineUsecase = usecase.MedicineUsecase(medicineRepository)
+	AppointmentUsecase = usecase.AppointmentUsecase(appointmentRepository)
+	MedicalRecordUsecase = usecase.MedicalRecordUsecase(medicalRecordRepository)
+	patientUsecase := usecase.PatientUsecase(patientRepository)
+	prescriptionUsecase := usecase.PrescriptionUsecase(prescriptionRepository)
+	paymentUsecase := usecase.PaymentUsecase(paymentRepository)
+	icd10Usecase := usecase.ICD10Usecase(icd10Repository)
+	diseaseMonitoringUsecase := usecase.DiseaseMonitoringUsecase(diseaseMonitoringRepository)
+	healthNewsUsecase := usecase.HealthNewsUsecase(healthNewsRepository)
 
 	medicineHandler := handler.MedicineHandler(MedicineUsecase)
+	appointmentHandler := handler.AppointmentHandler(AppointmentUsecase)
+	medicalRecordHandler := handler.MedicalRecordHandler(MedicalRecordUsecase)
+	patientHandler := handler.PatientHandler(patientUsecase)
+	prescriptionHandler := handler.PrescriptionHandler(prescriptionUsecase)
+	paymentHandler := handler.PaymentHandler(paymentUsecase)
+	icd10Handler := handler.ICD10Handler(icd10Usecase)
+	diseaseMonitoringHandler := handler.DiseaseMonitoringHandler(diseaseMonitoringUsecase)
+	healthNewsHandler := handler.HealthNewsHandler(healthNewsUsecase)
 
 	e := echo.New()
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.GET("/api/medicine", medicineHandler.Get, handler.Middleware)
+
+	e.GET("/api/appointment", appointmentHandler.Get, handler.Middleware)
+
+	e.GET("/api/patient", patientHandler.Get, handler.Middleware)
+
+	e.GET("/api/medical-record", medicalRecordHandler.Get, handler.Middleware)
+
+	e.GET("/api/prescription", prescriptionHandler.Get, handler.Middleware)
+
+	e.GET("/api/payment", paymentHandler.Get, handler.Middleware)
+
+	e.GET("/api/icd10", icd10Handler.Get, handler.Middleware)
+
+	e.GET("/api/disease-monitoring", diseaseMonitoringHandler.Get, handler.Middleware)
+
+	e.GET("/api/health-news", healthNewsHandler.Get, handler.Middleware)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup

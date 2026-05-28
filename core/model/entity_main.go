@@ -191,23 +191,3 @@ type Consumer struct {
 	SubType string          `json:"sub_type"`
 	Data    json.RawMessage `json:"data"`
 }
-
-type CreateAppointment struct {
-	IDPatient    int       `json:"id_patient"`
-	IDDoctor     int       `json:"id_doctor"`
-	Tanggal      time.Time `json:"tanggal"`
-	Keluhan      string    `json:"keluhan"`
-	TekananDarah string    `json:"tekanan_darah"`
-	SuhuTubuh    float64   `json:"suhu_tubuh"`
-	BeratBadan   float64   `json:"berat_badan"`
-	Status       string    `json:"status"`
-}
-
-type CreateMedicalRecord struct {
-	IDAppointment  int    `json:"id_appointment"`
-	IDICD          int    `json:"id_icd"`
-	HasilLab       string `json:"hasil_lab"`
-	HasilRadiologi string `json:"hasil_radiologi"`
-	Tindakan       string `json:"tindakan"`
-	Catatan        string `json:"catatan"`
-}
