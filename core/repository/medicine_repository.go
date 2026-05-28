@@ -33,3 +33,9 @@ func (m *medicineRepository) Create(tx *gorm.DB, request model.Medicine) (err er
 	err = tx.Create(&request).Error
 	return
 }
+
+
+func (m *medicineRepository)Get()(data []model.Medicine,err error){
+	err = m.db.Find(&data).Error
+	return
+}

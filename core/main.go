@@ -14,6 +14,7 @@ import (
 
 	"core-healtcare.com/config"
 	"core-healtcare.com/domain"
+	"core-healtcare.com/handler"
 	l "core-healtcare.com/helper/logger"
 	"core-healtcare.com/model"
 	"core-healtcare.com/repository"
@@ -58,7 +59,9 @@ func main() {
 
 	PORT, _ := strconv.Atoi(os.Getenv("PORT"))
 
-	// API_KEY := os.Getenv("API_KEY")
+	API_KEY := os.Getenv("API_KEY")
+
+	handler.API_KEY = API_KEY
 
 	url := fmt.Sprintf("0.0.0.0:%d", PORT)
 
@@ -70,9 +73,13 @@ func main() {
 
 	MedicineUsecase = usecase.MedicineUsecase(medicineRepository)
 
+	medicineHandler := handler.MedicineHandler(MedicineUsecase)
+
 	e := echo.New()
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	e.GET("/api/medicine", medicineHandler.Get, handler.Middleware)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -115,7 +122,7 @@ func RedisConsumer(ctx context.Context, rdb *redis.Client, stream, groupName, co
 		l.Log.Error(l.Fields{
 			"error": err.Error(),
 		}, nil, err.Error())
-		
+
 	}
 
 	groupExists := false
@@ -202,21 +209,20 @@ func RedisConsumer(ctx context.Context, rdb *redis.Client, stream, groupName, co
 							err = MedicineUsecase.Create(req)
 							if err != nil {
 								l.Log.Error(l.Fields{
-									"error":err.Error(),
-								},nil,"error create medicine")
+									"error": err.Error(),
+								}, nil, "error create medicine")
 								continue
 							}
 						}
-					}else if reqRedis.TrxType == "APOINTMENT"{
-						if reqRedis.SubType == "CREATE"{
+					} else if reqRedis.TrxType == "APOINTMENT" {
+						if reqRedis.SubType == "CREATE" {
 							//panggil usecase
 						}
-					}else if reqRedis.TrxType == "MEDICAL-RECORD"{
-						if reqRedis.SubType == "CREATE"{
+					} else if reqRedis.TrxType == "MEDICAL-RECORD" {
+						if reqRedis.SubType == "CREATE" {
 
 						}
 					}
-
 
 					rdb.XAck(ctx, stream, groupName, message.ID)
 

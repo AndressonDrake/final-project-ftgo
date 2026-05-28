@@ -37,3 +37,16 @@ func (m *medicineUsecase) Create(request model.CreateMedicine) (err error) {
 
 	return
 }
+
+func (m *medicineUsecase) Get()(data []model.Medicine,message,detail string,err error){
+	data ,err = m.medicineRepository.Get()
+	if err != nil{
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+
+	message = "succes get medicine"
+
+	return
+}
