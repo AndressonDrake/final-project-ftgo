@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-resty/resty/v2 v2.17.2
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.15.2
 	github.com/sirupsen/logrus v1.9.4

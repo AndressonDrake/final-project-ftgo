@@ -35,6 +35,10 @@ func main() {
 	REDIS_PORT, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	REDIS_PASSWORD := os.Getenv("REDIS_PASSWORD")
 
+	API_KEY := os.Getenv("API_KEY")
+
+	CORE_URL := os.Getenv("CORE_URL")
+
 	PORT, _ := strconv.Atoi(os.Getenv("PORT"))
 
 	url := fmt.Sprintf("0.0.0.0:%d", PORT)
@@ -43,15 +47,22 @@ func main() {
 
 	redisRepository := repository.RedisRepository(rdb, "HEALTHCARE:STREAM")
 
+	coreRepository := repository.CoreRepository(API_KEY, CORE_URL)
+
 	postUsecase := usecase.PostUsecase(redisRepository)
 
+	coreUsecase := usecase.GetUsecase(coreRepository)
+
 	postHandler := handler.PostHandler(postUsecase)
+
+	coreHandler := handler.CoreHandler(coreUsecase)
 
 	e := echo.New()
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.POST("/api", postHandler.Post)
+	e.GET("/api", coreHandler.GetCore)
 
 	e.Start(url)
 
