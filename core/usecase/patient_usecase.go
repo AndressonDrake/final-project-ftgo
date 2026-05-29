@@ -23,3 +23,14 @@ func (u *patientUsecase) Get() (data []model.Patient, message, detail string, er
 	message = "success get patient"
 	return
 }
+
+func (u *patientUsecase) GetByID(id int) (data model.Patient, message, detail string, err error) {
+	data, err = u.patientRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get patient by ID"
+	return
+}

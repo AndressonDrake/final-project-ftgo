@@ -18,3 +18,8 @@ func (r *healthNewsRepository) Get() (data []model.HealthNews, err error) {
 	err = r.db.Find(&data).Error
 	return
 }
+
+func (r *healthNewsRepository) FindByID(id int) (data model.HealthNews, err error) {
+	err = r.db.First(&data, id).Error
+	return
+}

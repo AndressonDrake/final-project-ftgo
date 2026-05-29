@@ -4,3 +4,8 @@ type ResponseSuccessGetHealthNews struct {
 	Message string       `json:"message"`
 	Data    []HealthNews `json:"data"`
 }
+
+type ResponseSuccessGetHealthNewsByID struct {
+	Message string     `json:"message"`
+	Data    HealthNews `json:"data"`
+}

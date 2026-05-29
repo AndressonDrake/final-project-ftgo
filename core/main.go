@@ -123,6 +123,24 @@ func main() {
 
 	e.GET("/api/health-news", healthNewsHandler.Get, handler.Middleware)
 
+	e.GET("/api/medicine/:id", medicineHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/appointment/:id", appointmentHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/patient/:id", patientHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/medical-record/:id", medicalRecordHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/prescription/:id", prescriptionHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/payment/:id", paymentHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/icd10/:id", icd10Handler.GetByID, handler.Middleware)
+
+	e.GET("/api/disease-monitoring/:id", diseaseMonitoringHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/health-news/:id", healthNewsHandler.GetByID, handler.Middleware)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 

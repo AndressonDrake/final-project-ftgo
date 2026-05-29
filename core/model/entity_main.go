@@ -85,7 +85,6 @@ type ICD10 struct {
 	IDICD        int    `gorm:"column:id_icd;primaryKey;autoIncrement" json:"id_icd"`
 	KodeICD      string `gorm:"column:kode_icd;type:varchar(20)" json:"kode_icd"`
 	NamaPenyakit string `gorm:"column:nama_penyakit;type:varchar(200)" json:"nama_penyakit"`
-	Kategori     string `gorm:"column:kategori;type:varchar(150)" json:"kategori"`
 }
 
 func (ICD10) TableName() string {

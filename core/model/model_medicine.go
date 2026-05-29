@@ -17,3 +17,8 @@ type ResponseError struct {
 	Message string `json:"message"`
 	Detail  string `json:"detail"`
 }
+
+type ResponseSuccessGetMedicineByID struct {
+	Message string   `json:"message"`
+	Data    Medicine `json:"data"`
+}

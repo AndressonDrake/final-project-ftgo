@@ -18,3 +18,8 @@ func (r *diseaseMonitoringRepository) Get() (data []model.DiseaseMonitoring, err
 	err = r.db.Preload("ICD10").Find(&data).Error
 	return
 }
+
+func (r *diseaseMonitoringRepository) FindByID(id int) (data model.DiseaseMonitoring, err error) {
+	err = r.db.Preload("ICD10").First(&data, id).Error
+	return
+}

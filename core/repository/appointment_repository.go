@@ -18,3 +18,8 @@ func (r *appointmentRepository) Get() (data []model.Appointment, err error) {
 	err = r.db.Preload("Patient").Preload("Doctor").Find(&data).Error
 	return
 }
+
+func (r *appointmentRepository) FindByID(id int) (data model.Appointment, err error) {
+	err = r.db.Preload("Patient").Preload("Doctor").First(&data, id).Error
+	return
+}

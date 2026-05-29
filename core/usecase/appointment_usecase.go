@@ -23,3 +23,14 @@ func (u *appointmentUsecase) Get() (data []model.Appointment, message, detail st
 	message = "success get appointment"
 	return
 }
+
+func (u *appointmentUsecase) GetByID(id int) (data model.Appointment, message, detail string, err error) {
+	data, err = u.appointmentRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get appointment by ID"
+	return
+}

@@ -18,3 +18,8 @@ func (r *paymentRepository) Get() (data []model.Payment, err error) {
 	err = r.db.Preload("Appointment").Find(&data).Error
 	return
 }
+
+func (r *paymentRepository) FindByID(id int) (data model.Payment, err error) {
+	err = r.db.Preload("Appointment").First(&data, id).Error
+	return
+}

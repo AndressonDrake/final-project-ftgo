@@ -23,3 +23,14 @@ func (u *diseaseMonitoringUsecase) Get() (data []model.DiseaseMonitoring, messag
 	message = "success get disease monitoring"
 	return
 }
+
+func (u *diseaseMonitoringUsecase) GetByID(id int) (data model.DiseaseMonitoring, message, detail string, err error) {
+	data, err = u.diseaseMonitoringRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get disease monitoring by ID"
+	return
+}

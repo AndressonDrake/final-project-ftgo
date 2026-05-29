@@ -23,3 +23,14 @@ func (u *healthNewsUsecase) Get() (data []model.HealthNews, message, detail stri
 	message = "success get health news"
 	return
 }
+
+func (u *healthNewsUsecase) GetByID(id int) (data model.HealthNews, message, detail string, err error) {
+	data, err = u.healthNewsRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get health news by ID"
+	return
+}

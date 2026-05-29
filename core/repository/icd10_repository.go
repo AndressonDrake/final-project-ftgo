@@ -18,3 +18,8 @@ func (r *icd10Repository) Get() (data []model.ICD10, err error) {
 	err = r.db.Find(&data).Error
 	return
 }
+
+func (r *icd10Repository) FindByID(id int) (data model.ICD10, err error) {
+	err = r.db.First(&data, id).Error
+	return
+}

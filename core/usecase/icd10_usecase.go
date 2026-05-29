@@ -23,3 +23,14 @@ func (u *icd10Usecase) Get() (data []model.ICD10, message, detail string, err er
 	message = "success get icd10"
 	return
 }
+
+func (u *icd10Usecase) GetByID(id int) (data model.ICD10, message, detail string, err error) {
+	data, err = u.icd10Repository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get icd10 by ID"
+	return
+}

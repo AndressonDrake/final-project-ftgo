@@ -38,3 +38,8 @@ func (m *medicineRepository) Get() (data []model.Medicine, err error) {
 	err = m.db.Find(&data).Error
 	return
 }
+
+func (m *medicineRepository) FindByID(id int) (data model.Medicine, err error) {
+	err = m.db.First(&data, id).Error
+	return
+}

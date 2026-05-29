@@ -23,3 +23,14 @@ func (u *prescriptionUsecase) Get() (data []model.Prescription, message, detail 
 	message = "success get prescription"
 	return
 }
+
+func (u *prescriptionUsecase) GetByID(id int) (data model.Prescription, message, detail string, err error) {
+	data, err = u.prescriptionRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get prescription by ID"
+	return
+}

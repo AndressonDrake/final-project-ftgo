@@ -23,3 +23,14 @@ func (u *paymentUsecase) Get() (data []model.Payment, message, detail string, er
 	message = "success get payment"
 	return
 }
+
+func (u *paymentUsecase) GetByID(id int) (data model.Payment, message, detail string, err error) {
+	data, err = u.paymentRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get payment by ID"
+	return
+}
