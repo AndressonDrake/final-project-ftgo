@@ -26,7 +26,17 @@ import (
 )
 
 var (
-	MedicineUsecase domain.MedicineUsecase
+	MedicineUsecase          domain.MedicineUsecase
+	AppointmentUsecase       domain.AppointmentUsecase
+	BranchUsecase            domain.BranchUsecase
+	DiseaseMonitoringUsecase domain.DiseaseMonitoringUsecase
+	HealthNewsUsecase        domain.HealthNewsUsecase
+	MedicalRecordUsecase     domain.MedicalRecordUsecase
+	PatientUsecase           domain.PatientUsecase
+	UserUsecase              domain.UserUsecase
+	ICD10Usecase             domain.ICD10Usecase
+	PrescriptionUsecase      domain.PrescriptionUsecase
+	PaymentUsecase           domain.PaymentUsecase
 )
 
 // @title Core
@@ -75,11 +85,62 @@ func main() {
 
 	medicineHandler := handler.MedicineHandler(MedicineUsecase)
 
+	appointmentRepository := repository.AppointmentRepository(db)
+	AppointmentUsecase = usecase.AppointmentUsecase(appointmentRepository)
+	appointmentHandler := handler.AppointmentHandler(AppointmentUsecase)
+
+	branchRepository := repository.BranchRepository(db)
+	BranchUsecase = usecase.BranchUsecase(branchRepository)
+
+	diseaseRepository := repository.DiseaseMonitoringRepository(db)
+	DiseaseMonitoringUsecase = usecase.DiseaseMonitoringUsecase(diseaseRepository)
+	diseaseMonitoringHandler := handler.DiseaseMonitoringHandler(DiseaseMonitoringUsecase)
+
+	newsRepository := repository.HealthNewsRepository(db)
+	HealthNewsUsecase = usecase.HealthNewsUsecase(newsRepository)
+	healthNewsHandler := handler.HealthNewsHandler(HealthNewsUsecase)
+
+	icdRepository := repository.ICD10Repository(db)
+	ICD10Usecase = usecase.ICD10Usecase(icdRepository)
+	icd10Handler := handler.ICD10Handler(ICD10Usecase)
+
+	prescriptionRepository := repository.PrescriptionRepository(db)
+	PrescriptionUsecase = usecase.PrescriptionUsecase(prescriptionRepository)
+	prescriptionHandler := handler.PrescriptionHandler(PrescriptionUsecase)
+
+	paymentRepository := repository.PaymentRepository(db)
+	PaymentUsecase = usecase.PaymentUsecase(paymentRepository)
+	paymentHandler := handler.PaymentHandler(PaymentUsecase)
+
+	medicalRecordRepository := repository.MedicalRecordRepository(db)
+	MedicalRecordUsecase = usecase.MedicalRecordUsecase(medicalRecordRepository)
+	medicalRecordHandler := handler.MedicalRecordHandler(MedicalRecordUsecase)
+
+	patientRepository := repository.PatientRepository(db)
+	PatientUsecase = usecase.PatientUsecase(patientRepository)
+	patientHandler := handler.PatientHandler(PatientUsecase)
+
 	e := echo.New()
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.GET("/api/medicine", medicineHandler.Get, handler.Middleware)
+
+	e.GET("/api/appointment", appointmentHandler.Get, handler.Middleware)
+
+	e.GET("/api/disease-monitoring", diseaseMonitoringHandler.Get, handler.Middleware)
+
+	e.GET("/api/health-news", healthNewsHandler.Get, handler.Middleware)
+
+	e.GET("/api/icd10", icd10Handler.Get, handler.Middleware)
+
+	e.GET("/api/prescription", prescriptionHandler.Get, handler.Middleware)
+
+	e.GET("/api/payment", paymentHandler.Get, handler.Middleware)
+
+	e.GET("/api/patient", patientHandler.Get, handler.Middleware)
+
+	e.GET("/api/medical-record", medicalRecordHandler.Get, handler.Middleware)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
@@ -193,34 +254,192 @@ func RedisConsumer(ctx context.Context, rdb *redis.Client, stream, groupName, co
 					}
 
 					if reqRedis.TrxType == "MEDICINE" {
+
 						if reqRedis.SubType == "CREATE" {
+
 							var req model.CreateMedicine
 
 							err = json.Unmarshal(reqRedis.Data, &req)
 							if err != nil {
-
 								continue
 							}
-
-							l.Log.Info(l.Fields{
-								"data": req,
-							}, nil, "info data create")
 
 							err = MedicineUsecase.Create(req)
 							if err != nil {
-								l.Log.Error(l.Fields{
-									"error": err.Error(),
-								}, nil, "error create medicine")
 								continue
 							}
 						}
-					} else if reqRedis.TrxType == "APOINTMENT" {
-						if reqRedis.SubType == "CREATE" {
-							//panggil usecase
-						}
-					} else if reqRedis.TrxType == "MEDICAL-RECORD" {
+
+					} else if reqRedis.TrxType == "APPOINTMENT" {
+
 						if reqRedis.SubType == "CREATE" {
 
+							var req model.CreateAppointment
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								fmt.Printf("Received message: %v\n", message.Values["data"])
+								continue
+							}
+							fmt.Printf("AppointmentUsecase: %#v\n", AppointmentUsecase)
+
+							err = AppointmentUsecase.Create(req)
+							if err != nil {
+								fmt.Println("APPOINTMENT ERROR:", err)
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "MEDICAL_RECORD" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreateMedicalRecord
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = MedicalRecordUsecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "PATIENT" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreatePatient
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = PatientUsecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "USER" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreateUser
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = UserUsecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+					} else if reqRedis.TrxType == "ICD10" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreateICD10
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = ICD10Usecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "PRESCRIPTION" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreatePrescription
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = PrescriptionUsecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "PAYMENT" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreatePayment
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = PaymentUsecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "DISEASE_MONITORING" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreateDiseaseMonitoring
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = DiseaseMonitoringUsecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "HEALTH_NEWS" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreateHealthNews
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = HealthNewsUsecase.Create(req)
+							if err != nil {
+								continue
+							}
+						}
+
+					} else if reqRedis.TrxType == "BRANCH" {
+
+						if reqRedis.SubType == "CREATE" {
+
+							var req model.CreateBranch
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+								continue
+							}
+
+							err = BranchUsecase.Create(req)
+							if err != nil {
+								continue
+							}
 						}
 					}
 

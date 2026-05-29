@@ -44,3 +44,4 @@ func (r *redisRepository) RedisProducer(message model.RedisProducer) (err error)
 
 	return
 }
+
