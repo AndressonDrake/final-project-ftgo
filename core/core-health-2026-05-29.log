@@ -1,1 +1,2 @@
 [31mERRO[0m[2026-05-29 17:59:52] ERR no such key                               [31mcase[0m=core-health [31merror[0m="ERR no such key" [31mfile[0m="C:/hacktiv8/final/final-project-ftgo/core/main.go" [31mfunction[0m=main.RedisConsumer [31mline[0m=183
+[31mERRO[0m[2026-05-29 20:33:36] ERR no such key                               [31mcase[0m=core-health [31merror[0m="ERR no such key" [31mfile[0m="C:/hacktiv8/final/final-project-ftgo/core/main.go" [31mfunction[0m=main.RedisConsumer [31mline[0m=192
