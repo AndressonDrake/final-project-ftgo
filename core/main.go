@@ -15,6 +15,7 @@ import (
 	"core-healtcare.com/config"
 	"core-healtcare.com/domain"
 	"core-healtcare.com/handler"
+	"core-healtcare.com/helper"
 	l "core-healtcare.com/helper/logger"
 	"core-healtcare.com/model"
 	"core-healtcare.com/repository"
@@ -66,6 +67,9 @@ func main() {
 	REDIS_HOST := os.Getenv("REDIS_HOST")
 	REDIS_PORT, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
 	REDIS_PASSWORD := os.Getenv("REDIS_PASSWORD")
+
+	helper.URLMAILING = os.Getenv("URL_MAILING")
+	helper.XAPIKey = os.Getenv("XAPIKEY")
 
 	PORT, _ := strconv.Atoi(os.Getenv("PORT"))
 
@@ -119,6 +123,11 @@ func main() {
 	patientRepository := repository.PatientRepository(db)
 	PatientUsecase = usecase.PatientUsecase(patientRepository)
 	patientHandler := handler.PatientHandler(PatientUsecase)
+
+	userRepository := repository.UserRepository(db)
+	UserUsecase = usecase.UserUsecase(userRepository)
+	
+
 
 	e := echo.New()
 
