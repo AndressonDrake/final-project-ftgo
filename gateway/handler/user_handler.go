@@ -14,6 +14,17 @@ func UserHandler(userUsecase domain.UserUsecase) domain.UserHandler {
 	return &userHandler{userUsecase: userUsecase}
 }
 
+
+// Create godoc
+// @Summary Login
+// @Tags Login
+// @Accept json
+// @Produce json
+// @Param request body model.ReqeustLoginUser true "Request Create User"
+// @Success 200 {object} model.ResponseSuccessLoginUser
+// @Failure 400 {object} model.ResponseErrorPost
+// @Failure 500 {object} model.ResponseErrorPost
+// @Router /login [post]
 func (u *userHandler) Login(c echo.Context) (err error) {
 	var request model.ReqeustLoginUser
 	var responseOK model.ResponseSuccessLoginUser

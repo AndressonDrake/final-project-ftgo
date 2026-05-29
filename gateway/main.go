@@ -15,6 +15,7 @@ import (
 	l "gw-heatlcare.com/helper/logger"
 	"gw-heatlcare.com/repository"
 	"gw-heatlcare.com/usecase"
+	_"gw-heatlcare.com/docs"
 )
 
 func main() {
@@ -72,7 +73,7 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.POST("/api", postHandler.Post, handler.Middleware)
+	e.POST("/api", postHandler.Post)
 	e.GET("/api", coreHandler.GetCore, handler.Middleware)
 
 	e.POST("/login", userHandler.Login)

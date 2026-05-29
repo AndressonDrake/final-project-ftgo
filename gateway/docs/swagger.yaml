@@ -1,0 +1,55 @@
+definitions:
+  model.ReqeustLoginUser:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  model.ResponseErrorPost:
+    properties:
+      detail:
+        type: string
+      message:
+        type: string
+    type: object
+  model.ResponseSuccessLoginUser:
+    properties:
+      message:
+        type: string
+      token:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request Create User
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ReqeustLoginUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ResponseSuccessLoginUser'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ResponseErrorPost'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/model.ResponseErrorPost'
+      summary: Login
+      tags:
+      - Login
+swagger: "2.0"
