@@ -17,4 +17,4 @@ type MedicineUsecase interface {
 }
 
 type MedicineHandler interface {
-}
+}	
