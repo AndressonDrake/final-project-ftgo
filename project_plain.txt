@@ -1,0 +1,3311 @@
+final-project-ftgo/
+├── .git/
+├── .gitignore
+├── core/
+│   ├── config/
+│   │   ├── database.go
+│   │   └── redis.go
+│   ├── domain/
+│   │   ├── appointment.go
+│   │   ├── disease_monitoring.go
+│   │   ├── health_news.go
+│   │   ├── icd10.go
+│   │   ├── medical_record.go
+│   │   ├── medicine.go
+│   │   ├── patient.go
+│   │   ├── payment.go
+│   │   └── presicription.go
+│   ├── handler/
+│   │   ├── appointment_handler.go
+│   │   ├── disease_monitoring_handler.go
+│   │   ├── health_news_handler.go
+│   │   ├── icd10_handler.go
+│   │   ├── medical_record_handler.go
+│   │   ├── medicine_handler.go
+│   │   ├── middleware.go
+│   │   ├── patient_handler.go
+│   │   ├── payment_handler.go
+│   │   └── prescription_handler.go
+│   ├── helper/
+│   │   ├── date.go
+│   │   └── logger/
+│   │       ├── callstack.go
+│   │       └── logger.go
+│   ├── model/
+│   │   ├── entity_main.go
+│   │   ├── model_appointment.go
+│   │   ├── model_disease_monitoring.go
+│   │   ├── model_health_news.go
+│   │   ├── model_icd10.go
+│   │   ├── model_medical_record.go
+│   │   ├── model_medicine.go
+│   │   ├── model_patient.go
+│   │   ├── model_payment.go
+│   │   └── model_prescription.go
+│   ├── repository/
+│   │   ├── appointment_repository.go
+│   │   ├── disease_monitoring_repository.go
+│   │   ├── health_news_repository.go
+│   │   ├── icd10_repository.go
+│   │   ├── medical_record_repository.go
+│   │   ├── medicine_repository.go
+│   │   ├── patient_repository.go
+│   │   ├── payment_repository.go
+│   │   └── prescription_repository.go
+│   ├── tests/
+│   │   └── fetch_test.go
+│   ├── usecase/
+│   │   ├── appointment_usecase.go
+│   │   ├── disease_monitoring_usecase.go
+│   │   ├── health_news_usecase.go
+│   │   ├── icd10_usecase.go
+│   │   ├── medical_record_usecase.go
+│   │   ├── medicine_usecase.go
+│   │   ├── patient_usecase.go
+│   │   ├── payment_usecase.go
+│   │   └── prescription_usecase.go
+│   ├── core-health-2026-05-28.log
+│   ├── core-health-2026-05-29.log
+│   ├── go.mod
+│   ├── go.sum
+│   └── main.go
+└── gateway/
+    ├── config/
+    │   └── redis.go
+    ├── domain/
+    │   ├── post.go
+    │   └── redis.go
+    ├── handler/
+    │   └── post_handler.go
+    ├── helper/
+    │   ├── map.go
+    │   └── logger/
+    │       ├── callstack.go
+    │       └── logger.go
+    ├── model/
+    │   ├── post_model.go
+    │   └── redis_model.go
+    ├── repository/
+    │   └── redis.go
+    ├── usecase/
+    │   └── post_usecase.go
+    ├── gw-health-2026-05-28.log
+    ├── gw-health-2026-05-29.log
+    ├── go.mod
+    ├── go.sum
+    └── main.go
+	
+	
+============================================================================================================================================================================
+database.go:
+============================================================================================================================================================================
+package config
+
+import (
+	"fmt"
+	"log"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+
+func ConnectDB(host,user,password,dbName string,port int) (db *gorm.DB,err error){
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=require TimeZone=Asia/Jakarta", host, user, password, dbName, port)
+
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil{
+		log.Fatalf("Error connecting to database: %v\n", err)
+		return
+	}
+
+	sqDB, _ := db.DB()
+
+	err = sqDB.Ping()
+
+	if err != nil {
+		log.Fatalf("Error pinging database: %v\n", err)
+		return
+	}
+
+	return
+}
+
+final-project-ftgo/
+├── .git/
+├── .gitignore
+├── core/
+│   ├── config/
+│   │   ├── database.go
+============================================================================================================================================================================
+package config
+
+import (
+	"fmt"
+	"log"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+)
+
+
+func ConnectDB(host,user,password,dbName string,port int) (db *gorm.DB,err error){
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=require TimeZone=Asia/Jakarta", host, user, password, dbName, port)
+
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil{
+		log.Fatalf("Error connecting to database: %v\n", err)
+		return
+	}
+
+	sqDB, _ := db.DB()
+
+	err = sqDB.Ping()
+
+	if err != nil {
+		log.Fatalf("Error pinging database: %v\n", err)
+		return
+	}
+
+	return
+}
+
+============================================================================================================================================================================
+│   │   └── redis.go
+============================================================================================================================================================================
+package config
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/go-redis/redis/v8"
+)
+
+func ConnectRedis(host, password string, port int) (rdb *redis.Client, err error) {
+
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", host, port),
+		Password: password,
+		DB:       0,
+		Username: "default",
+	})
+
+	ctx := context.Background()
+
+
+	_, err = rdb.Ping(ctx).Result()
+	if err != nil {
+		remark := fmt.Sprintf("error connect to redis %[1]v", err)
+		log.Println(remark)
+		return
+	}
+
+	return
+}
+
+============================================================================================================================================================================
+│   ├── domain/
+============================================================================================================================================================================
+│   │   ├── appointment.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type AppointmentRepository interface {
+	Get() (data []model.Appointment, err error)
+	FindByID(id int) (data model.Appointment, err error) // 🆕
+}
+type AppointmentUsecase interface {
+	Get() (data []model.Appointment, message, detail string, err error)
+	GetByID(id int) (data model.Appointment, message, detail string, err error) // 🆕
+}
+type AppointmentHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error) // 🆕
+}
+
+============================================================================================================================================================================
+│   │   ├── disease_monitoring.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type DiseaseMonitoringRepository interface {
+	Get() (data []model.DiseaseMonitoring, err error)
+	FindByID(id int) (data model.DiseaseMonitoring, err error)
+}
+type DiseaseMonitoringUsecase interface {
+	Get() (data []model.DiseaseMonitoring, message, detail string, err error)
+	GetByID(id int) (data model.DiseaseMonitoring, message, detail string, err error)
+}
+type DiseaseMonitoringHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error)
+}
+
+============================================================================================================================================================================
+│   │   ├── health_news.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type HealthNewsRepository interface {
+	Get() (data []model.HealthNews, err error)
+	FindByID(id int) (data model.HealthNews, err error)
+}
+type HealthNewsUsecase interface {
+	Get() (data []model.HealthNews, message, detail string, err error)
+	GetByID(id int) (data model.HealthNews, message, detail string, err error)
+}
+type HealthNewsHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error)
+}
+
+============================================================================================================================================================================
+│   │   ├── icd10.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type ICD10Repository interface {
+	Get() (data []model.ICD10, err error)
+	FindByID(id int) (data model.ICD10, err error)
+}
+type ICD10Usecase interface {
+	Get() (data []model.ICD10, message, detail string, err error)
+	GetByID(id int) (data model.ICD10, message, detail string, err error)
+}
+type ICD10Handler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error)
+}
+
+============================================================================================================================================================================
+│   │   ├── medical_record.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type MedicalRecordRepository interface {
+	Get() (data []model.MedicalRecord, err error)
+	FindByID(id int) (data model.MedicalRecord, err error)
+}
+type MedicalRecordUsecase interface {
+	Get() (data []model.MedicalRecord, message, detail string, err error)
+	GetByID(id int) (data model.MedicalRecord, message, detail string, err error)
+}
+type MedicalRecordHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error)
+}
+============================================================================================================================================================================
+│   │   ├── medicine.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
+)
+
+type MedicineRepository interface {
+	Begin() (tx *gorm.DB)
+	Commit(tx *gorm.DB) (err error)
+	Rollback(tx *gorm.DB) (err error)
+	Create(tx *gorm.DB, request model.Medicine) (err error)
+	Get() (data []model.Medicine, err error)
+	FindByID(id int) (data model.Medicine, err error) // 🆕
+}
+
+type MedicineUsecase interface {
+	Create(request model.CreateMedicine) (err error)
+	Get() (data []model.Medicine, message, detail string, err error)
+	GetByID(id int) (data model.Medicine, message, detail string, err error) // 🆕
+}
+
+type MedicineHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error) // 🆕
+}
+============================================================================================================================================================================
+│   │   ├── patient.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type PatientRepository interface {
+	Get() (data []model.Patient, err error)
+	FindByID(id int) (data model.Patient, err error)
+}
+type PatientUsecase interface {
+	Get() (data []model.Patient, message, detail string, err error)
+	GetByID(id int) (data model.Patient, message, detail string, err error)
+}
+type PatientHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error)
+}
+============================================================================================================================================================================
+│   │   ├── payment.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type PaymentRepository interface {
+	Get() (data []model.Payment, err error)
+	FindByID(id int) (data model.Payment, err error)
+}
+type PaymentUsecase interface {
+	Get() (data []model.Payment, message, detail string, err error)
+	GetByID(id int) (data model.Payment, message, detail string, err error)
+}
+type PaymentHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error)
+}
+============================================================================================================================================================================
+│   │   └── presicription.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type PrescriptionRepository interface {
+	Get() (data []model.Prescription, err error)
+	FindByID(id int) (data model.Prescription, err error)
+}
+type PrescriptionUsecase interface {
+	Get() (data []model.Prescription, message, detail string, err error)
+	GetByID(id int) (data model.Prescription, message, detail string, err error)
+}
+type PrescriptionHandler interface {
+	Get(c echo.Context) (err error)
+	GetByID(c echo.Context) (err error)
+}
+============================================================================================================================================================================
+│   ├── handler/
+============================================================================================================================================================================
+│   │   ├── appointment_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type appointmentHandler struct {
+	appointmentUsecase domain.AppointmentUsecase
+}
+
+func AppointmentHandler(appointmentUsecase domain.AppointmentUsecase) domain.AppointmentHandler {
+	return &appointmentHandler{appointmentUsecase: appointmentUsecase}
+}
+
+func (h *appointmentHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetAppointment
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.appointmentUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (h *appointmentHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetAppointmentByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := h.appointmentUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+============================================================================================================================================================================
+│   │   ├── disease_monitoring_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type diseaseMonitoringHandler struct {
+	diseaseMonitoringUsecase domain.DiseaseMonitoringUsecase
+}
+
+func DiseaseMonitoringHandler(diseaseMonitoringUsecase domain.DiseaseMonitoringUsecase) domain.DiseaseMonitoringHandler {
+	return &diseaseMonitoringHandler{diseaseMonitoringUsecase: diseaseMonitoringUsecase}
+}
+
+func (h *diseaseMonitoringHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetDiseaseMonitoring
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.diseaseMonitoringUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (h *diseaseMonitoringHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetDiseaseMonitoringByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := h.diseaseMonitoringUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+============================================================================================================================================================================
+│   │   ├── health_news_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type healthNewsHandler struct {
+	healthNewsUsecase domain.HealthNewsUsecase
+}
+
+func HealthNewsHandler(healthNewsUsecase domain.HealthNewsUsecase) domain.HealthNewsHandler {
+	return &healthNewsHandler{healthNewsUsecase: healthNewsUsecase}
+}
+
+func (h *healthNewsHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetHealthNews
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.healthNewsUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (h *healthNewsHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetHealthNewsByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := h.healthNewsUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+============================================================================================================================================================================
+│   │   ├── icd10_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type icd10Handler struct {
+	icd10Usecase domain.ICD10Usecase
+}
+
+func ICD10Handler(icd10Usecase domain.ICD10Usecase) domain.ICD10Handler {
+	return &icd10Handler{icd10Usecase: icd10Usecase}
+}
+
+func (h *icd10Handler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetICD10
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.icd10Usecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (h *icd10Handler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetICD10ByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := h.icd10Usecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+============================================================================================================================================================================
+│   │   ├── medical_record_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type medicalRecordHandler struct {
+	medicalRecordUsecase domain.MedicalRecordUsecase
+}
+
+func MedicalRecordHandler(medicalRecordUsecase domain.MedicalRecordUsecase) domain.MedicalRecordHandler {
+	return &medicalRecordHandler{medicalRecordUsecase: medicalRecordUsecase}
+}
+
+func (h *medicalRecordHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetMedicalRecord
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.medicalRecordUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (m *medicalRecordHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetMedicalRecordByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := m.medicalRecordUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+============================================================================================================================================================================
+│   │   ├── medicine_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type medicineHandler struct {
+	medicineUsecase domain.MedicineUsecase
+}
+
+func MedicineHandler(medicineUsecase domain.MedicineUsecase) domain.MedicineHandler {
+	return &medicineHandler{medicineUsecase: medicineUsecase}
+}
+
+func (m *medicineHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetMedicine
+	var responseErr model.ResponseError
+
+	data, message, detail, err := m.medicineUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (m *medicineHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetMedicineByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := m.medicineUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+============================================================================================================================================================================
+│   │   ├── middleware.go
+============================================================================================================================================================================
+package handler
+
+import (
+
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+var (
+	API_KEY string
+)
+
+func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var response model.ResponseError
+		authHeader := c.Request().Header.Get("api-key")
+
+		if authHeader == "" {
+			response.Message = "nil token"
+			return c.JSON(403, response)
+		}
+
+		if authHeader != API_KEY {
+			response.Message = "invalid api key"
+			return c.JSON(403, response)
+		}
+
+		return next(c)
+
+	}
+}
+============================================================================================================================================================================
+│   │   ├── patient_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type patientHandler struct {
+	patientUsecase domain.PatientUsecase
+}
+
+func PatientHandler(patientUsecase domain.PatientUsecase) domain.PatientHandler {
+	return &patientHandler{patientUsecase: patientUsecase}
+}
+
+func (h *patientHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetPatient
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.patientUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (m *patientHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetPatientByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := m.patientUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+============================================================================================================================================================================
+│   │   ├── payment_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type paymentHandler struct {
+	paymentUsecase domain.PaymentUsecase
+}
+
+func PaymentHandler(paymentUsecase domain.PaymentUsecase) domain.PaymentHandler {
+	return &paymentHandler{paymentUsecase: paymentUsecase}
+}
+
+func (h *paymentHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetPayment
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.paymentUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (m *paymentHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetPaymentByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := m.paymentUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+============================================================================================================================================================================
+│   │   └── prescription_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"strconv"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"github.com/labstack/echo/v4"
+)
+
+type prescriptionHandler struct {
+	prescriptionUsecase domain.PrescriptionUsecase
+}
+
+func PrescriptionHandler(prescriptionUsecase domain.PrescriptionUsecase) domain.PrescriptionHandler {
+	return &prescriptionHandler{prescriptionUsecase: prescriptionUsecase}
+}
+
+func (h *prescriptionHandler) Get(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetPrescription
+	var responseErr model.ResponseError
+
+	data, message, detail, err := h.prescriptionUsecase.Get()
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+func (m *prescriptionHandler) GetByID(c echo.Context) (err error) {
+	var responseOK model.ResponseSuccessGetPrescriptionByID
+	var responseErr model.ResponseError
+
+	idStr := c.Param("id")
+	id, errConv := strconv.Atoi(idStr)
+	if errConv != nil {
+		responseErr.Message = "invalid id"
+		responseErr.Detail = errConv.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	data, message, detail, err := m.prescriptionUsecase.GetByID(id)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(404, responseErr)
+	}
+
+	responseOK.Message = message
+	responseOK.Data = data
+
+	return c.JSON(200, responseOK)
+}
+
+============================================================================================================================================================================
+│   ├── helper/
+============================================================================================================================================================================
+│   │   ├── date.go
+============================================================================================================================================================================
+package helper
+
+var(
+	DATELAYOUT = "2006-01-02"
+)
+============================================================================================================================================================================
+│   │   └── logger/
+============================================================================================================================================================================
+│   │       ├── callstack.go
+============================================================================================================================================================================
+package logger
+
+import "runtime"
+
+func GetCaller() (file, function string, line int) {
+	pc, file, line, _ := runtime.Caller(3)
+	function = runtime.FuncForPC(pc).Name()
+	return
+}
+
+
+============================================================================================================================================================================
+│   │       └── logger.go
+============================================================================================================================================================================
+package logger
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"sync"
+
+	"time"
+
+	"github.com/sirupsen/logrus"
+)
+
+var Log *Logger
+var mu sync.Mutex
+
+type Fields logrus.Fields
+
+type Logger struct {
+	log *logrus.Entry
+	logrusBase *logrus.Logger
+
+}
+
+func (l *Logger) BaseLog(fields map[string]interface{}, data interface{}) (log *logrus.Entry) {
+	file, function, line := GetCaller()
+	log = l.log.WithFields(logrus.Fields{
+		"file":     file,
+		"line":     line,
+		"function": function,
+	}).WithFields(fields)
+	if data != nil {
+		payload, err := json.Marshal(data)
+		if err != nil {
+			log = log.WithField("data_error", err.Error())
+			return
+		}
+		log = log.WithField("data", string(payload))
+	}
+	return
+}
+
+func (l *Logger) Info(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Info(message)
+}
+func (l *Logger) Warn(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Warn(message)
+}
+func (l *Logger) Error(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Error(message)
+}
+func (l *Logger) Fatal(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Fatal(message)
+}
+func (l *Logger) Panic(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Panic(message)
+}
+
+func (l *Logger) SetFileOutput(file io.Writer) {
+	l.log.Logger.Out = file
+}
+
+func NewLogger(name string) {
+	l := logrus.New()
+	l.SetFormatter(&logrus.TextFormatter{
+		ForceColors:     true,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+	Log = &Logger{
+		log: l.WithField("case", name),
+		logrusBase: l,
+	}
+
+	go Log.dailyLogRotation(name)
+}
+
+func (l *Logger) dailyLogRotation(appName string) {
+	for {
+		l.rotateLogFile(appName)
+
+		// Tunggu sampai pukul 00:00:01 hari berikutnya
+		now := time.Now()
+		next := now.Add(24 * time.Hour).Truncate(24 * time.Hour).Add(time.Second)
+		time.Sleep(time.Until(next))
+	}
+}
+
+func (l *Logger) rotateLogFile(appName string) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	dateStr := time.Now().Format("2006-01-02")
+	filename := fmt.Sprintf("%s-%s.log", appName, dateStr)
+
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("Failed to create/open log file: %v\n", err)
+		return
+	}
+
+	
+	l.logrusBase.SetOutput(file)
+}
+
+============================================================================================================================================================================
+│   ├── model/
+============================================================================================================================================================================
+│   │   ├── entity_main.go
+============================================================================================================================================================================
+package model
+
+import (
+	"encoding/json"
+	"time"
+)
+
+type Role struct {
+	IDRole   int    `gorm:"column:id_role;primaryKey;autoIncrement" json:"id_role"`
+	NamaRole string `gorm:"column:nama_role;type:varchar(100)" json:"nama_role"`
+}
+
+func (Role) TableName() string {
+	return "roles"
+}
+
+type Branch struct {
+	IDCabang   int    `gorm:"column:id_cabang;primaryKey;autoIncrement" json:"id_cabang"`
+	NamaCabang string `gorm:"column:nama_cabang;type:varchar(150)" json:"nama_cabang"`
+	Alamat     string `gorm:"column:alamat;type:text" json:"alamat"`
+}
+
+func (Branch) TableName() string {
+	return "branches"
+}
+
+type User struct {
+	IDUser   int    `gorm:"column:id_user;primaryKey;autoIncrement" json:"id_user"`
+	IDRole   int    `gorm:"column:id_role" json:"id_role"`
+	IDCabang int    `gorm:"column:id_cabang" json:"id_cabang"`
+	Nama     string `gorm:"column:nama;type:varchar(150)" json:"nama"`
+	Email    string `gorm:"column:email;type:varchar(150);unique" json:"email"`
+	Password string `gorm:"column:password;type:varchar(255)" json:"password"`
+	NoHP     string `gorm:"column:no_hp;type:varchar(20)" json:"no_hp"`
+
+	Role   Role   `gorm:"foreignKey:IDRole;references:IDRole" json:"role"`
+	Branch Branch `gorm:"foreignKey:IDCabang;references:IDCabang" json:"branch"`
+}
+
+func (User) TableName() string {
+	return "users"
+}
+
+type PatientStatus struct {
+	IDStatus   int    `gorm:"column:id_status;primaryKey;autoIncrement" json:"id_status"`
+	NamaStatus string `gorm:"column:nama_status;type:varchar(100)" json:"nama_status"`
+}
+
+func (PatientStatus) TableName() string {
+	return "patient_status"
+}
+
+type Patient struct {
+	IDPatient     int       `gorm:"column:id_patient;primaryKey;autoIncrement" json:"id_patient"`
+	IDStatus      int       `gorm:"column:id_status" json:"id_status"`
+	Nama          string    `gorm:"column:nama;type:varchar(150)" json:"nama"`
+	NIK           string    `gorm:"column:nik;type:varchar(30);unique" json:"nik"`
+	TanggalLahir  time.Time `gorm:"column:tanggal_lahir;type:date" json:"tanggal_lahir"`
+	Gender        string    `gorm:"column:gender;type:varchar(20)" json:"gender"`
+	Alamat        string    `gorm:"column:alamat;type:text" json:"alamat"`
+	NoHP          string    `gorm:"column:no_hp;type:varchar(20)" json:"no_hp"`
+	GolonganDarah string    `gorm:"column:golongan_darah;type:varchar(5)" json:"golongan_darah"`
+
+	Status PatientStatus `gorm:"foreignKey:IDStatus;references:IDStatus" json:"status"`
+}
+
+func (Patient) TableName() string {
+	return "patients"
+}
+
+type Medicine struct {
+	IDObat      int       `gorm:"column:id_obat;primaryKey;autoIncrement" json:"id_obat"`
+	NamaObat    string    `gorm:"column:nama_obat;type:varchar(150)" json:"nama_obat"`
+	Kategori    string    `gorm:"column:kategori;type:varchar(100)" json:"kategori"`
+	Stok        int       `gorm:"column:stok" json:"stok"`
+	Harga       float64   `gorm:"column:harga;type:decimal(12,2)" json:"harga"`
+	ExpiredDate time.Time `gorm:"column:expired_date;type:date" json:"expired_date"`
+}
+
+func (Medicine) TableName() string {
+	return "medicines"
+}
+
+type ICD10 struct {
+	IDICD        int    `gorm:"column:id_icd;primaryKey;autoIncrement" json:"id_icd"`
+	KodeICD      string `gorm:"column:kode_icd;type:varchar(20)" json:"kode_icd"`
+	NamaPenyakit string `gorm:"column:nama_penyakit;type:varchar(200)" json:"nama_penyakit"`
+}
+
+func (ICD10) TableName() string {
+	return "icd10"
+}
+
+type Appointment struct {
+	IDAppointment int       `gorm:"column:id_appointment;primaryKey;autoIncrement" json:"id_appointment"`
+	IDPatient     int       `gorm:"column:id_patient" json:"id_patient"`
+	IDDoctor      int       `gorm:"column:id_doctor" json:"id_doctor"`
+	Tanggal       time.Time `gorm:"column:tanggal;type:timestamp" json:"tanggal"`
+	Keluhan       string    `gorm:"column:keluhan;type:text" json:"keluhan"`
+	TekananDarah  string    `gorm:"column:tekanan_darah;type:varchar(20)" json:"tekanan_darah"`
+	SuhuTubuh     float64   `gorm:"column:suhu_tubuh;type:decimal(4,1)" json:"suhu_tubuh"`
+	BeratBadan    float64   `gorm:"column:berat_badan;type:decimal(5,2)" json:"berat_badan"`
+	Status        string    `gorm:"column:status;type:varchar(50)" json:"status"`
+
+	Patient Patient `gorm:"foreignKey:IDPatient;references:IDPatient" json:"patient"`
+	Doctor  User    `gorm:"foreignKey:IDDoctor;references:IDUser" json:"doctor"`
+}
+
+func (Appointment) TableName() string {
+	return "appointments"
+}
+
+type MedicalRecord struct {
+	IDRecord       int    `gorm:"column:id_record;primaryKey;autoIncrement" json:"id_record"`
+	IDAppointment  int    `gorm:"column:id_appointment" json:"id_appointment"`
+	IDICD          int    `gorm:"column:id_icd" json:"id_icd"`
+	HasilLab       string `gorm:"column:hasil_lab;type:text" json:"hasil_lab"`
+	HasilRadiologi string `gorm:"column:hasil_radiologi;type:text" json:"hasil_radiologi"`
+	Tindakan       string `gorm:"column:tindakan;type:text" json:"tindakan"`
+	Catatan        string `gorm:"column:catatan;type:text" json:"catatan"`
+
+	Appointment Appointment `gorm:"foreignKey:IDAppointment;references:IDAppointment" json:"appointment"`
+	ICD10       ICD10       `gorm:"foreignKey:IDICD;references:IDICD" json:"icd10"`
+}
+
+func (MedicalRecord) TableName() string {
+	return "medical_records"
+}
+
+type Prescription struct {
+	IDResep     int    `gorm:"column:id_resep;primaryKey;autoIncrement" json:"id_resep"`
+	IDRecord    int    `gorm:"column:id_record" json:"id_record"`
+	IDObat      int    `gorm:"column:id_obat" json:"id_obat"`
+	Jumlah      int    `gorm:"column:jumlah" json:"jumlah"`
+	AturanPakai string `gorm:"column:aturan_pakai;type:text" json:"aturan_pakai"`
+
+	MedicalRecord MedicalRecord `gorm:"foreignKey:IDRecord;references:IDRecord" json:"medical_record"`
+	Medicine      Medicine      `gorm:"foreignKey:IDObat;references:IDObat" json:"medicine"`
+}
+
+func (Prescription) TableName() string {
+	return "prescriptions"
+}
+
+type Payment struct {
+	IDPayment        int     `gorm:"column:id_payment;primaryKey;autoIncrement" json:"id_payment"`
+	IDAppointment    int     `gorm:"column:id_appointment" json:"id_appointment"`
+	Total            float64 `gorm:"column:total;type:decimal(12,2)" json:"total"`
+	MetodePembayaran string  `gorm:"column:metode_pembayaran;type:varchar(50)" json:"metode_pembayaran"`
+	StatusPembayaran string  `gorm:"column:status_pembayaran;type:varchar(50)" json:"status_pembayaran"`
+
+	Appointment Appointment `gorm:"foreignKey:IDAppointment;references:IDAppointment" json:"appointment"`
+}
+
+func (Payment) TableName() string {
+	return "payments"
+}
+
+type DiseaseMonitoring struct {
+	IDMonitoring  int       `gorm:"column:id_monitoring;primaryKey;autoIncrement" json:"id_monitoring"`
+	IDICD         int       `gorm:"column:id_icd" json:"id_icd"`
+	Negara        string    `gorm:"column:negara;type:varchar(100)" json:"negara"`
+	TotalKasus    int       `gorm:"column:total_kasus" json:"total_kasus"`
+	TotalKematian int       `gorm:"column:total_kematian" json:"total_kematian"`
+	TotalSembuh   int       `gorm:"column:total_sembuh" json:"total_sembuh"`
+	TanggalUpdate time.Time `gorm:"column:tanggal_update;type:timestamp" json:"tanggal_update"`
+
+	ICD10 ICD10 `gorm:"foreignKey:IDICD;references:IDICD" json:"icd10"`
+}
+
+func (DiseaseMonitoring) TableName() string {
+	return "disease_monitoring"
+}
+
+type HealthNews struct {
+	IDNews         int       `gorm:"column:id_news;primaryKey;autoIncrement" json:"id_news"`
+	Judul          string    `gorm:"column:judul;type:varchar(255)" json:"judul"`
+	Sumber         string    `gorm:"column:sumber;type:varchar(150)" json:"sumber"`
+	Kategori       string    `gorm:"column:kategori;type:varchar(100)" json:"kategori"`
+	TanggalPublish time.Time `gorm:"column:tanggal_publish;type:timestamp" json:"tanggal_publish"`
+	URL            string    `gorm:"column:url;type:text" json:"url"`
+}
+
+func (HealthNews) TableName() string {
+	return "health_news"
+}
+
+type Consumer struct {
+	TrxType string          `json:"trx_type"`
+	SubType string          `json:"sub_type"`
+	Data    json.RawMessage `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_appointment.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetAppointment struct {
+	Message string        `json:"message"`
+	Data    []Appointment `json:"data"`
+}
+
+type ResponseSuccessGetAppointmentByID struct {
+	Message string      `json:"message"`
+	Data    Appointment `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_disease_monitoring.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetDiseaseMonitoring struct {
+	Message string              `json:"message"`
+	Data    []DiseaseMonitoring `json:"data"`
+}
+
+type ResponseSuccessGetDiseaseMonitoringByID struct {
+	Message string            `json:"message"`
+	Data    DiseaseMonitoring `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_health_news.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetHealthNews struct {
+	Message string       `json:"message"`
+	Data    []HealthNews `json:"data"`
+}
+
+type ResponseSuccessGetHealthNewsByID struct {
+	Message string     `json:"message"`
+	Data    HealthNews `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_icd10.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetICD10 struct {
+	Message string  `json:"message"`
+	Data    []ICD10 `json:"data"`
+}
+
+type ResponseSuccessGetICD10ByID struct {
+	Message string `json:"message"`
+	Data    ICD10  `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_medical_record.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetMedicalRecord struct {
+	Message string          `json:"message"`
+	Data    []MedicalRecord `json:"data"`
+}
+
+type ResponseSuccessGetMedicalRecordByID struct {
+	Message string        `json:"message"`
+	Data    MedicalRecord `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_medicine.go
+============================================================================================================================================================================
+package model
+
+type CreateMedicine struct {
+	NamaObat    string  `json:"nama_obat"`
+	Kategori    string  `json:"kategori"`
+	Stok        int     `json:"stok"`
+	Harga       float64 `json:"harga"`
+	ExpiredDate string  `json:"expired_date"`
+}
+
+type ResponseSuccessGetMedicine struct {
+	Message string     `json:"message"`
+	Data    []Medicine `json:"data"`
+}
+
+type ResponseError struct {
+	Message string `json:"message"`
+	Detail  string `json:"detail"`
+}
+
+type ResponseSuccessGetMedicineByID struct {
+	Message string   `json:"message"`
+	Data    Medicine `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_patient.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetPatient struct {
+	Message string    `json:"message"`
+	Data    []Patient `json:"data"`
+}
+
+type ResponseSuccessGetPatientByID struct {
+	Message string  `json:"message"`
+	Data    Patient `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   ├── model_payment.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetPayment struct {
+	Message string    `json:"message"`
+	Data    []Payment `json:"data"`
+}
+
+type ResponseSuccessGetPaymentByID struct {
+	Message string  `json:"message"`
+	Data    Payment `json:"data"`
+}
+
+============================================================================================================================================================================
+│   │   └── model_prescription.go
+============================================================================================================================================================================
+package model
+
+type ResponseSuccessGetPrescription struct {
+	Message string         `json:"message"`
+	Data    []Prescription `json:"data"`
+}
+
+type ResponseSuccessGetPrescriptionByID struct {
+	Message string       `json:"message"`
+	Data    Prescription `json:"data"`
+}
+
+============================================================================================================================================================================
+│   ├── repository/
+│   │   ├── appointment_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type appointmentRepository struct {
+	db *gorm.DB
+}
+
+func AppointmentRepository(db *gorm.DB) domain.AppointmentRepository {
+	return &appointmentRepository{db: db}
+}
+
+func (r *appointmentRepository) Get() (data []model.Appointment, err error) {
+	err = r.db.Preload("Patient").Preload("Doctor").Find(&data).Error
+	return
+}
+
+func (r *appointmentRepository) FindByID(id int) (data model.Appointment, err error) {
+	err = r.db.Preload("Patient").Preload("Doctor").First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── disease_monitoring_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type diseaseMonitoringRepository struct {
+	db *gorm.DB
+}
+
+func DiseaseMonitoringRepository(db *gorm.DB) domain.DiseaseMonitoringRepository {
+	return &diseaseMonitoringRepository{db: db}
+}
+
+func (r *diseaseMonitoringRepository) Get() (data []model.DiseaseMonitoring, err error) {
+	err = r.db.Preload("ICD10").Find(&data).Error
+	return
+}
+
+func (r *diseaseMonitoringRepository) FindByID(id int) (data model.DiseaseMonitoring, err error) {
+	err = r.db.Preload("ICD10").First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── health_news_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type healthNewsRepository struct {
+	db *gorm.DB
+}
+
+func HealthNewsRepository(db *gorm.DB) domain.HealthNewsRepository {
+	return &healthNewsRepository{db: db}
+}
+
+func (r *healthNewsRepository) Get() (data []model.HealthNews, err error) {
+	err = r.db.Find(&data).Error
+	return
+}
+
+func (r *healthNewsRepository) FindByID(id int) (data model.HealthNews, err error) {
+	err = r.db.First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── icd10_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type icd10Repository struct {
+	db *gorm.DB
+}
+
+func ICD10Repository(db *gorm.DB) domain.ICD10Repository {
+	return &icd10Repository{db: db}
+}
+
+func (r *icd10Repository) Get() (data []model.ICD10, err error) {
+	err = r.db.Find(&data).Error
+	return
+}
+
+func (r *icd10Repository) FindByID(id int) (data model.ICD10, err error) {
+	err = r.db.First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── medical_record_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type medicalRecordRepository struct {
+	db *gorm.DB
+}
+
+func MedicalRecordRepository(db *gorm.DB) domain.MedicalRecordRepository {
+	return &medicalRecordRepository{db: db}
+}
+
+func (r *medicalRecordRepository) Get() (data []model.MedicalRecord, err error) {
+	err = r.db.Preload("Appointment").Preload("ICD10").Find(&data).Error
+	return
+}
+
+func (r *medicalRecordRepository) FindByID(id int) (data model.MedicalRecord, err error) {
+	err = r.db.Preload("Appointment").Preload("ICD10").First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── medicine_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type medicineRepository struct {
+	db *gorm.DB
+}
+
+func MedicineRepository(db *gorm.DB) domain.MedicineRepository {
+	return &medicineRepository{db: db}
+}
+
+func (m *medicineRepository) Begin() (tx *gorm.DB) {
+	tx = m.db.Begin()
+	return
+}
+
+func (m *medicineRepository) Commit(tx *gorm.DB) (err error) {
+	err = tx.Commit().Error
+	return
+}
+
+func (m *medicineRepository) Rollback(tx *gorm.DB) (err error) {
+	err = tx.Rollback().Error
+	return
+}
+
+func (m *medicineRepository) Create(tx *gorm.DB, request model.Medicine) (err error) {
+	err = tx.Create(&request).Error
+	return
+}
+
+func (m *medicineRepository) Get() (data []model.Medicine, err error) {
+	err = m.db.Find(&data).Error
+	return
+}
+
+func (m *medicineRepository) FindByID(id int) (data model.Medicine, err error) {
+	err = m.db.First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── patient_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type patientRepository struct {
+	db *gorm.DB
+}
+
+func PatientRepository(db *gorm.DB) domain.PatientRepository {
+	return &patientRepository{db: db}
+}
+
+func (r *patientRepository) Get() (data []model.Patient, err error) {
+	err = r.db.Preload("Status").Find(&data).Error
+	return
+}
+
+func (r *patientRepository) FindByID(id int) (data model.Patient, err error) {
+	err = r.db.Preload("Status").First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── payment_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type paymentRepository struct {
+	db *gorm.DB
+}
+
+func PaymentRepository(db *gorm.DB) domain.PaymentRepository {
+	return &paymentRepository{db: db}
+}
+
+func (r *paymentRepository) Get() (data []model.Payment, err error) {
+	err = r.db.Preload("Appointment").Find(&data).Error
+	return
+}
+
+func (r *paymentRepository) FindByID(id int) (data model.Payment, err error) {
+	err = r.db.Preload("Appointment").First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   │   └── prescription_repository.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+	"gorm.io/gorm"
+)
+
+type prescriptionRepository struct {
+	db *gorm.DB
+}
+
+func PrescriptionRepository(db *gorm.DB) domain.PrescriptionRepository {
+	return &prescriptionRepository{db: db}
+}
+
+func (r *prescriptionRepository) Get() (data []model.Prescription, err error) {
+	err = r.db.Preload("Medicine").Preload("MedicalRecord").Find(&data).Error
+	return
+}
+
+func (r *prescriptionRepository) FindByID(id int) (data model.Prescription, err error) {
+	err = r.db.Preload("Medicine").Preload("MedicalRecord").First(&data, id).Error
+	return
+}
+
+============================================================================================================================================================================
+│   ├── tests/
+│   │   └── fetch_test.go
+============================================================================================================================================================================
+============================================================================================================================================================================
+│   ├── usecase/
+│   │   ├── appointment_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type appointmentUsecase struct {
+	appointmentRepository domain.AppointmentRepository
+}
+
+func AppointmentUsecase(appointmentRepository domain.AppointmentRepository) domain.AppointmentUsecase {
+	return &appointmentUsecase{appointmentRepository: appointmentRepository}
+}
+
+func (u *appointmentUsecase) Get() (data []model.Appointment, message, detail string, err error) {
+	data, err = u.appointmentRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get appointment"
+	return
+}
+
+func (u *appointmentUsecase) GetByID(id int) (data model.Appointment, message, detail string, err error) {
+	data, err = u.appointmentRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get appointment by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── disease_monitoring_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type diseaseMonitoringUsecase struct {
+	diseaseMonitoringRepository domain.DiseaseMonitoringRepository
+}
+
+func DiseaseMonitoringUsecase(diseaseMonitoringRepository domain.DiseaseMonitoringRepository) domain.DiseaseMonitoringUsecase {
+	return &diseaseMonitoringUsecase{diseaseMonitoringRepository: diseaseMonitoringRepository}
+}
+
+func (u *diseaseMonitoringUsecase) Get() (data []model.DiseaseMonitoring, message, detail string, err error) {
+	data, err = u.diseaseMonitoringRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get disease monitoring"
+	return
+}
+
+func (u *diseaseMonitoringUsecase) GetByID(id int) (data model.DiseaseMonitoring, message, detail string, err error) {
+	data, err = u.diseaseMonitoringRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get disease monitoring by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── health_news_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type healthNewsUsecase struct {
+	healthNewsRepository domain.HealthNewsRepository
+}
+
+func HealthNewsUsecase(healthNewsRepository domain.HealthNewsRepository) domain.HealthNewsUsecase {
+	return &healthNewsUsecase{healthNewsRepository: healthNewsRepository}
+}
+
+func (u *healthNewsUsecase) Get() (data []model.HealthNews, message, detail string, err error) {
+	data, err = u.healthNewsRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get health news"
+	return
+}
+
+func (u *healthNewsUsecase) GetByID(id int) (data model.HealthNews, message, detail string, err error) {
+	data, err = u.healthNewsRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get health news by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── icd10_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type icd10Usecase struct {
+	icd10Repository domain.ICD10Repository
+}
+
+func ICD10Usecase(icd10Repository domain.ICD10Repository) domain.ICD10Usecase {
+	return &icd10Usecase{icd10Repository: icd10Repository}
+}
+
+func (u *icd10Usecase) Get() (data []model.ICD10, message, detail string, err error) {
+	data, err = u.icd10Repository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get icd10"
+	return
+}
+
+func (u *icd10Usecase) GetByID(id int) (data model.ICD10, message, detail string, err error) {
+	data, err = u.icd10Repository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get icd10 by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── medical_record_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type medicalRecordUsecase struct {
+	medicalRecordRepository domain.MedicalRecordRepository
+}
+
+func MedicalRecordUsecase(medicalRecordRepository domain.MedicalRecordRepository) domain.MedicalRecordUsecase {
+	return &medicalRecordUsecase{medicalRecordRepository: medicalRecordRepository}
+}
+
+func (u *medicalRecordUsecase) Get() (data []model.MedicalRecord, message, detail string, err error) {
+	data, err = u.medicalRecordRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get medical record"
+	return
+}
+
+func (u *medicalRecordUsecase) GetByID(id int) (data model.MedicalRecord, message, detail string, err error) {
+	data, err = u.medicalRecordRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get medical record by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── medicine_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"time"
+
+	"core-healtcare.com/domain"
+	"core-healtcare.com/helper"
+	"core-healtcare.com/model"
+)
+
+type medicineUsecase struct {
+	medicineRepository domain.MedicineRepository
+}
+
+func MedicineUsecase(medicineRepository domain.MedicineRepository) domain.MedicineUsecase {
+	return &medicineUsecase{medicineRepository: medicineRepository}
+}
+
+func (m *medicineUsecase) Create(request model.CreateMedicine) (err error) {
+	var req model.Medicine
+
+	req.NamaObat = request.NamaObat
+	req.Kategori = request.Kategori
+	req.Harga = request.Harga
+	req.ExpiredDate, _ = time.Parse(helper.DATELAYOUT, request.ExpiredDate)
+	req.Stok = request.Stok
+
+	tx := m.medicineRepository.Begin()
+
+	err = m.medicineRepository.Create(tx, req)
+	if err != nil {
+		m.medicineRepository.Rollback(tx)
+		return
+	}
+
+	m.medicineRepository.Commit(tx)
+
+	return
+}
+
+func (m *medicineUsecase) Get() (data []model.Medicine, message, detail string, err error) {
+	data, err = m.medicineRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+
+	message = "succes get medicine"
+
+	return
+}
+
+func (m *medicineUsecase) GetByID(id int) (data model.Medicine, message, detail string, err error) {
+	data, err = m.medicineRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get medicine"
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── patient_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type patientUsecase struct {
+	patientRepository domain.PatientRepository
+}
+
+func PatientUsecase(patientRepository domain.PatientRepository) domain.PatientUsecase {
+	return &patientUsecase{patientRepository: patientRepository}
+}
+
+func (u *patientUsecase) Get() (data []model.Patient, message, detail string, err error) {
+	data, err = u.patientRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get patient"
+	return
+}
+
+func (u *patientUsecase) GetByID(id int) (data model.Patient, message, detail string, err error) {
+	data, err = u.patientRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get patient by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   │   ├── payment_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type paymentUsecase struct {
+	paymentRepository domain.PaymentRepository
+}
+
+func PaymentUsecase(paymentRepository domain.PaymentRepository) domain.PaymentUsecase {
+	return &paymentUsecase{paymentRepository: paymentRepository}
+}
+
+func (u *paymentUsecase) Get() (data []model.Payment, message, detail string, err error) {
+	data, err = u.paymentRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get payment"
+	return
+}
+
+func (u *paymentUsecase) GetByID(id int) (data model.Payment, message, detail string, err error) {
+	data, err = u.paymentRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get payment by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   │   └── prescription_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"core-healtcare.com/domain"
+	"core-healtcare.com/model"
+)
+
+type prescriptionUsecase struct {
+	prescriptionRepository domain.PrescriptionRepository
+}
+
+func PrescriptionUsecase(prescriptionRepository domain.PrescriptionRepository) domain.PrescriptionUsecase {
+	return &prescriptionUsecase{prescriptionRepository: prescriptionRepository}
+}
+
+func (u *prescriptionUsecase) Get() (data []model.Prescription, message, detail string, err error) {
+	data, err = u.prescriptionRepository.Get()
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		return
+	}
+	message = "success get prescription"
+	return
+}
+
+func (u *prescriptionUsecase) GetByID(id int) (data model.Prescription, message, detail string, err error) {
+	data, err = u.prescriptionRepository.FindByID(id)
+	if err != nil {
+		detail = err.Error()
+		message = "data not found"
+		return
+	}
+	message = "success get prescription by ID"
+	return
+}
+
+============================================================================================================================================================================
+│   ├── core-health-2026-05-28.log
+│   ├── core-health-2026-05-29.log
+│   ├── go.mod
+============================================================================================================================================================================
+module core-healtcare.com
+
+go 1.25.0
+
+require (
+	github.com/go-redis/redis/v8 v8.11.5
+	github.com/joho/godotenv v1.5.1
+	github.com/labstack/echo/v4 v4.15.2
+	github.com/sirupsen/logrus v1.9.4
+	github.com/swaggo/echo-swagger v1.5.2
+	gorm.io/driver/postgres v1.6.0
+	gorm.io/gorm v1.31.1
+)
+
+require (
+	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/go-openapi/jsonpointer v0.19.6 // indirect
+	github.com/go-openapi/jsonreference v0.20.2 // indirect
+	github.com/go-openapi/spec v0.20.9 // indirect
+	github.com/go-openapi/swag v0.22.3 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.6.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
+	github.com/labstack/gommon v0.5.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rogpeppe/go-internal v1.15.0 // indirect
+	github.com/sv-tools/openapi v0.2.1 // indirect
+	github.com/swaggo/files/v2 v2.0.0 // indirect
+	github.com/swaggo/swag v1.16.2 // indirect
+	github.com/swaggo/swag/v2 v2.0.0-rc4 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/tools v0.43.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+	sigs.k8s.io/yaml v1.3.0 // indirect
+)
+
+============================================================================================================================================================================
+│   ├── go.sum
+============================================================================================================================================================================
+github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
+github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
+github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
+github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
+github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
+github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
+github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
+github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
+github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
+github.com/go-openapi/jsonpointer v0.19.3/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
+github.com/go-openapi/jsonpointer v0.19.5/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
+github.com/go-openapi/jsonpointer v0.19.6 h1:eCs3fxoIi3Wh6vtgmLTOjdhSpiqphQ+DaPn38N2ZdrE=
+github.com/go-openapi/jsonpointer v0.19.6/go.mod h1:osyAmYz/mB/C3I+WsTTSgw1ONzaLJoLCyoi6/zppojs=
+github.com/go-openapi/jsonreference v0.20.0/go.mod h1:Ag74Ico3lPc+zR+qjn4XBUmXymS4zJbYVCZmcgkasdo=
+github.com/go-openapi/jsonreference v0.20.2 h1:3sVjiK66+uXK/6oQ8xgcRKcFgQ5KXa2KvnJRumpMGbE=
+github.com/go-openapi/jsonreference v0.20.2/go.mod h1:Bl1zwGIM8/wsvqjsOQLJ/SH+En5Ap4rVB5KVcIDZG2k=
+github.com/go-openapi/spec v0.20.9 h1:xnlYNQAwKd2VQRRfwTEI0DcK+2cbuvI/0c7jx3gA8/8=
+github.com/go-openapi/spec v0.20.9/go.mod h1:2OpW+JddWPrpXSCIX8eOx7lZ5iyuWj3RYR6VaaBKcWA=
+github.com/go-openapi/swag v0.19.5/go.mod h1:POnQmlKehdgb5mhVOsnJFsivZCEZ/vjK9gh66Z9tfKk=
+github.com/go-openapi/swag v0.19.15/go.mod h1:QYRuS/SOXUCsnplDa677K7+DxSOj6IPNl/eQntq43wQ=
+github.com/go-openapi/swag v0.22.3 h1:yMBqmnQ0gyZvEb/+KzuWZOXgllrXT4SADYbvDaXHv/g=
+github.com/go-openapi/swag v0.22.3/go.mod h1:UzaqsxGiab7freDnrUUra0MwWfN/q7tE4j+VcZ0yl14=
+github.com/go-redis/redis/v8 v8.11.5 h1:AcZZR7igkdvfVmQTPnu9WE37LRrO/YrBH5zWyjDC0oI=
+github.com/go-redis/redis/v8 v8.11.5/go.mod h1:gREzHqY1hg6oD9ngVRbLStwAWKhA0FEgq8Jd4h5lpwo=
+github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
+github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
+github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
+github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761/go.mod h1:5TJZWKEWniPve33vlWYSoGYefn3gLQRzjfDlhSJ9ZKM=
+github.com/jackc/pgx/v5 v5.6.0 h1:SWJzexBzPL5jb0GEsrPMLIsi/3jOo7RHlzTjcAeDrPY=
+github.com/jackc/pgx/v5 v5.6.0/go.mod h1:DNZ/vlrUnhWCoFGxHAG8U2ljioxukquj7utPDgtQdTw=
+github.com/jackc/puddle/v2 v2.2.2 h1:PR8nw+E/1w0GLuRFSmiioY6UooMp6KJv0/61nB7icHo=
+github.com/jackc/puddle/v2 v2.2.2/go.mod h1:vriiEXHvEE654aYKXXjOvZM39qJ0q+azkZFrfEOc3H4=
+github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
+github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
+github.com/jinzhu/now v1.1.5 h1:/o9tlHleP7gOFmsnYNz3RGnqzefHA47wQpKrrdTIwXQ=
+github.com/jinzhu/now v1.1.5/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
+github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
+github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
+github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
+github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
+github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
+github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
+github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
+github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
+github.com/labstack/echo/v4 v4.15.2 h1:nnh2sCzGCVYnU+wCisMPiYapEg/QVo/gcI9ePKg5/T4=
+github.com/labstack/echo/v4 v4.15.2/go.mod h1:Xzp1Ns1RA2c9fY7nSgUJkpkUZGNbEIVHZbtbOMPktBI=
+github.com/labstack/gommon v0.5.0 h1:6VSQ2NOzsnEJ5W6+84E0RbcaDDmgB6NIAzWCczTEe6c=
+github.com/labstack/gommon v0.5.0/go.mod h1:Rzlg7HHy1maLfzBYGg9NZcVuz1sA68HHhLjhcEllYE0=
+github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
+github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
+github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
+github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=
+github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
+github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
+github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
+github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw4=
+github.com/mattn/go-isatty v0.0.22/go.mod h1:ZXfXG4SQHsB/w3ZeOYbR0PrPwLy+n6xiMrJlRFqopa4=
+github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
+github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
+github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
+github.com/onsi/ginkgo v1.16.5 h1:8xi0RTUf59SOSfEtZMvwTvXYMzG4gV23XVHOZiXNtnE=
+github.com/onsi/ginkgo v1.16.5/go.mod h1:+E8gABHa3K6zRBolWtd+ROzc/U5bkGt0FwiG042wbpU=
+github.com/onsi/gomega v1.18.1 h1:M1GfJqGRrBrrGGsbxzV5dqM2U2ApXefZCQpkukxYRLE=
+github.com/onsi/gomega v1.18.1/go.mod h1:0q+aL8jAiMXy9hbwj2mr5GziHiwhAIQpFmmtT5hitRs=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/rogpeppe/go-internal v1.15.0 h1:D0RCU5rMAp+SpgkiNdrjfJ+LX4J1M32V2NeCY7EJ6hc=
+github.com/rogpeppe/go-internal v1.15.0/go.mod h1:DrUVZyrJU+txYW5/1kwtXQSMFio52ZOxX7yM1VHvnxs=
+github.com/sirupsen/logrus v1.9.4 h1:TsZE7l11zFCLZnZ+teH4Umoq5BhEIfIzfRDZ1Uzql2w=
+github.com/sirupsen/logrus v1.9.4/go.mod h1:ftWc9WdOfJ0a92nsE2jF5u5ZwH8Bv2zdeOC42RjbV2g=
+github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
+github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
+github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
+github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
+github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
+github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
+github.com/sv-tools/openapi v0.2.1 h1:ES1tMQMJFGibWndMagvdoo34T1Vllxr1Nlm5wz6b1aA=
+github.com/sv-tools/openapi v0.2.1/go.mod h1:k5VuZamTw1HuiS9p2Wl5YIDWzYnHG6/FgPOSFXLAhGg=
+github.com/swaggo/echo-swagger v1.5.2 h1:KUM4QuEO1r/maky6Ybb9wS5MFEkJUpXwPbK4wwBe5Uk=
+github.com/swaggo/echo-swagger v1.5.2/go.mod h1:nt3Z+SlyzXNIQ4odFNlPzRdcNOFvkPJHf+t4sMLhNu4=
+github.com/swaggo/files/v2 v2.0.0 h1:hmAt8Dkynw7Ssz46F6pn8ok6YmGZqHSVLZ+HQM7i0kw=
+github.com/swaggo/files/v2 v2.0.0/go.mod h1:24kk2Y9NYEJ5lHuCra6iVwkMjIekMCaFq/0JQj66kyM=
+github.com/swaggo/swag v1.16.2 h1:28Pp+8DkQoV+HLzLx8RGJZXNGKbFqnuvSbAAtoxiY04=
+github.com/swaggo/swag v1.16.2/go.mod h1:6YzXnDcpr0767iOejs318CwYkCQqyGer6BizOg03f+E=
+github.com/swaggo/swag/v2 v2.0.0-rc4 h1:SZ8cK68gcV6cslwrJMIOqPkJELRwq4gmjvk77MrvHvY=
+github.com/swaggo/swag/v2 v2.0.0-rc4/go.mod h1:Ow7Y8gF16BTCDn8YxZbyKn8FkMLRUHekv1kROJZpbvE=
+github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
+github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
+github.com/valyala/fasttemplate v1.2.2 h1:lxLXG0uE3Qnshl9QyaK6XJxMXlQZELvChBOCmQD0Loo=
+github.com/valyala/fasttemplate v1.2.2/go.mod h1:KHLXt3tVN2HBp8eijSv/kGJopbvo7S+qRAEEKiv+SiQ=
+golang.org/x/crypto v0.50.0 h1:zO47/JPrL6vsNkINmLoo/PH1gcxpls50DNogFvB5ZGI=
+golang.org/x/crypto v0.50.0/go.mod h1:3muZ7vA7PBCE6xgPX7nkzzjiUq87kRItoJQM1Yo8S+Q=
+golang.org/x/mod v0.34.0 h1:xIHgNUUnW6sYkcM5Jleh05DvLOtwc6RitGHbDk4akRI=
+golang.org/x/mod v0.34.0/go.mod h1:ykgH52iCZe79kzLLMhyCUzhMci+nQj+0XkbXpNYtVjY=
+golang.org/x/net v0.53.0 h1:d+qAbo5L0orcWAr0a9JweQpjXF19LMXJE8Ey7hwOdUA=
+golang.org/x/net v0.53.0/go.mod h1:JvMuJH7rrdiCfbeHoo3fCQU24Lf5JJwT9W3sJFulfgs=
+golang.org/x/sync v0.20.0 h1:e0PTpb7pjO8GAtTs2dQ6jYa5BWYlMuX047Dco/pItO4=
+golang.org/x/sync v0.20.0/go.mod h1:9xrNwdLfx4jkKbNva9FpL6vEN7evnE43NNNJQ2LF3+0=
+golang.org/x/sys v0.43.0 h1:Rlag2XtaFTxp19wS8MXlJwTvoh8ArU6ezoyFsMyCTNI=
+golang.org/x/sys v0.43.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
+golang.org/x/text v0.36.0 h1:JfKh3XmcRPqZPKevfXVpI1wXPTqbkE5f7JA92a55Yxg=
+golang.org/x/text v0.36.0/go.mod h1:NIdBknypM8iqVmPiuco0Dh6P5Jcdk8lJL0CUebqK164=
+golang.org/x/tools v0.43.0 h1:12BdW9CeB3Z+J/I/wj34VMl8X+fEXBxVR90JeMX5E7s=
+golang.org/x/tools v0.43.0/go.mod h1:uHkMso649BX2cZK6+RpuIPXS3ho2hZo4FVwfoy1vIk0=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
+gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
+gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 h1:uRGJdciOHaEIrze2W8Q3AKkepLTh2hOroT7a+7czfdQ=
+gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=
+gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
+gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
+gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gorm.io/driver/postgres v1.6.0 h1:2dxzU8xJ+ivvqTRph34QX+WrRaJlmfyPqXmoGVjMBa4=
+gorm.io/driver/postgres v1.6.0/go.mod h1:vUw0mrGgrTK+uPHEhAdV4sfFELrByKVGnaVRkXDhtWo=
+gorm.io/gorm v1.31.1 h1:7CA8FTFz/gRfgqgpeKIBcervUn3xSyPUmr6B2WXJ7kg=
+gorm.io/gorm v1.31.1/go.mod h1:XyQVbO2k6YkOis7C2437jSit3SsDK72s7n7rsSHd+Gs=
+sigs.k8s.io/yaml v1.3.0 h1:a2VclLzOGrwOHDiV8EfBGhvjHvP46CtW5j6POvhYGGo=
+sigs.k8s.io/yaml v1.3.0/go.mod h1:GeOyir5tyXNByN85N/dRIT9es5UQNerPYEKK56eTBm8=
+
+============================================================================================================================================================================
+│   └── main.go
+============================================================================================================================================================================
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"strconv"
+	"sync"
+	"syscall"
+	"time"
+
+	"core-healtcare.com/config"
+	"core-healtcare.com/domain"
+	"core-healtcare.com/handler"
+	l "core-healtcare.com/helper/logger"
+	"core-healtcare.com/model"
+	"core-healtcare.com/repository"
+	"core-healtcare.com/usecase"
+	"github.com/go-redis/redis/v8"
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
+)
+
+var (
+	MedicineUsecase      domain.MedicineUsecase
+	AppointmentUsecase   domain.AppointmentUsecase
+	MedicalRecordUsecase domain.MedicalRecordUsecase
+)
+
+// @title Core
+// @version 1.0
+// @description API Documentation P2
+// @host localhost:12100
+// @BasePath /core/
+
+// @securityDefinitions.apikey api-key
+// @in header
+// @name Authorization
+func main() {
+	l.NewLogger("core-health")
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v\n", err)
+		panic(err)
+	}
+
+	DB_NAME := os.Getenv("DB_NAME")
+	DB_USER := os.Getenv("DB_USER")
+	DB_HOST := os.Getenv("DB_HOST")
+	DB_PORT, _ := strconv.Atoi(os.Getenv("DB_PORT"))
+	DB_PASSWORD := os.Getenv("DB_PASSWORD")
+
+	REDIS_HOST := os.Getenv("REDIS_HOST")
+	REDIS_PORT, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
+	REDIS_PASSWORD := os.Getenv("REDIS_PASSWORD")
+
+	PORT, _ := strconv.Atoi(os.Getenv("PORT"))
+
+	API_KEY := os.Getenv("API_KEY")
+
+	handler.API_KEY = API_KEY
+
+	url := fmt.Sprintf("0.0.0.0:%d", PORT)
+
+	db, err := config.ConnectDB(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT)
+
+	rdb, err := config.ConnectRedis(REDIS_HOST, REDIS_PASSWORD, REDIS_PORT)
+
+	medicineRepository := repository.MedicineRepository(db)
+	appointmentRepository := repository.AppointmentRepository(db)
+	medicalRecordRepository := repository.MedicalRecordRepository(db)
+	patientRepository := repository.PatientRepository(db)
+	prescriptionRepository := repository.PrescriptionRepository(db)
+	paymentRepository := repository.PaymentRepository(db)
+	icd10Repository := repository.ICD10Repository(db)
+	diseaseMonitoringRepository := repository.DiseaseMonitoringRepository(db)
+	healthNewsRepository := repository.HealthNewsRepository(db)
+
+	MedicineUsecase = usecase.MedicineUsecase(medicineRepository)
+	AppointmentUsecase = usecase.AppointmentUsecase(appointmentRepository)
+	MedicalRecordUsecase = usecase.MedicalRecordUsecase(medicalRecordRepository)
+	patientUsecase := usecase.PatientUsecase(patientRepository)
+	prescriptionUsecase := usecase.PrescriptionUsecase(prescriptionRepository)
+	paymentUsecase := usecase.PaymentUsecase(paymentRepository)
+	icd10Usecase := usecase.ICD10Usecase(icd10Repository)
+	diseaseMonitoringUsecase := usecase.DiseaseMonitoringUsecase(diseaseMonitoringRepository)
+	healthNewsUsecase := usecase.HealthNewsUsecase(healthNewsRepository)
+
+	medicineHandler := handler.MedicineHandler(MedicineUsecase)
+	appointmentHandler := handler.AppointmentHandler(AppointmentUsecase)
+	medicalRecordHandler := handler.MedicalRecordHandler(MedicalRecordUsecase)
+	patientHandler := handler.PatientHandler(patientUsecase)
+	prescriptionHandler := handler.PrescriptionHandler(prescriptionUsecase)
+	paymentHandler := handler.PaymentHandler(paymentUsecase)
+	icd10Handler := handler.ICD10Handler(icd10Usecase)
+	diseaseMonitoringHandler := handler.DiseaseMonitoringHandler(diseaseMonitoringUsecase)
+	healthNewsHandler := handler.HealthNewsHandler(healthNewsUsecase)
+
+	e := echo.New()
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	e.GET("/api/medicine", medicineHandler.Get, handler.Middleware)
+
+	e.GET("/api/appointment", appointmentHandler.Get, handler.Middleware)
+
+	e.GET("/api/patient", patientHandler.Get, handler.Middleware)
+
+	e.GET("/api/medical-record", medicalRecordHandler.Get, handler.Middleware)
+
+	e.GET("/api/prescription", prescriptionHandler.Get, handler.Middleware)
+
+	e.GET("/api/payment", paymentHandler.Get, handler.Middleware)
+
+	e.GET("/api/icd10", icd10Handler.Get, handler.Middleware)
+
+	e.GET("/api/disease-monitoring", diseaseMonitoringHandler.Get, handler.Middleware)
+
+	e.GET("/api/health-news", healthNewsHandler.Get, handler.Middleware)
+
+	e.GET("/api/medicine/:id", medicineHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/appointment/:id", appointmentHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/patient/:id", patientHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/medical-record/:id", medicalRecordHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/prescription/:id", prescriptionHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/payment/:id", paymentHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/icd10/:id", icd10Handler.GetByID, handler.Middleware)
+
+	e.GET("/api/disease-monitoring/:id", diseaseMonitoringHandler.GetByID, handler.Middleware)
+
+	e.GET("/api/health-news/:id", healthNewsHandler.GetByID, handler.Middleware)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		RedisConsumer(ctx, rdb, "HEALTHCARE:STREAM", "HEALTHCARE:GROUP", "HEALTHCARE:CONSUMER")
+	}()
+
+	e.Start(url)
+
+	go func() {
+		defer wg.Done()
+		<-ctx.Done()
+		e.Shutdown(ctx)
+	}()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigs
+	cancel()
+	wg.Wait()
+
+}
+
+func RedisConsumer(ctx context.Context, rdb *redis.Client, stream, groupName, consumerName string) {
+	var reqRedis model.Consumer
+
+	err := rdb.FlushAll(ctx).Err()
+	if err != nil {
+		l.Log.Error(l.Fields{
+			"error": err.Error(),
+		}, nil, err.Error())
+		return
+	}
+
+	groups, err := rdb.XInfoGroups(ctx, stream).Result()
+	if err != nil && err != redis.Nil {
+		l.Log.Error(l.Fields{
+			"error": err.Error(),
+		}, nil, err.Error())
+
+	}
+
+	groupExists := false
+	for _, group := range groups {
+		if group.Name == groupName {
+			groupExists = true
+			break
+		}
+	}
+
+	if !groupExists {
+		_, err = rdb.XGroupCreateMkStream(ctx, stream, groupName, "0").Result()
+		if err != nil && err != redis.Nil {
+			if err.Error() != "BUSYGROUP Consumer Group name already exists" {
+				l.Log.Error(l.Fields{
+					"error": err.Error(),
+				}, nil, err.Error())
+				return
+			}
+
+		}
+	}
+
+	log.Println("Ara ara listening")
+
+	streams := []string{stream, ">"}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			xs, err := rdb.XReadGroup(ctx, &redis.XReadGroupArgs{
+				Group:    groupName,
+				Consumer: consumerName,
+				Streams:  streams,
+				Count:    1,
+				Block:    0, // Block indefinitely until a message arrives
+			}).Result()
+
+			if err != nil {
+				if err == context.Canceled {
+					return
+				}
+				// fmt.Printf("Error reading from stream: %v\n", err)
+
+				time.Sleep(1 * time.Second)
+				continue
+			}
+
+			for _, _stream := range xs {
+				for _, message := range _stream.Messages {
+					fmt.Printf("Received message: %v\n", message.Values["data"])
+
+					messageValue, ok := message.Values["data"].(string)
+
+					if !ok {
+						l.Log.Error(l.Fields{
+							"error": "error parse",
+						}, nil, "error parse")
+						continue
+					}
+
+					err := json.Unmarshal([]byte(messageValue), &reqRedis)
+
+					if err != nil {
+						continue
+					}
+
+					if reqRedis.TrxType == "MEDICINE" {
+						if reqRedis.SubType == "CREATE" {
+							var req model.CreateMedicine
+
+							err = json.Unmarshal(reqRedis.Data, &req)
+							if err != nil {
+
+								continue
+							}
+
+							l.Log.Info(l.Fields{
+								"data": req,
+							}, nil, "info data create")
+
+							err = MedicineUsecase.Create(req)
+							if err != nil {
+								l.Log.Error(l.Fields{
+									"error": err.Error(),
+								}, nil, "error create medicine")
+								continue
+							}
+						}
+					} else if reqRedis.TrxType == "APOINTMENT" {
+						if reqRedis.SubType == "CREATE" {
+							//panggil usecase
+						}
+					} else if reqRedis.TrxType == "MEDICAL-RECORD" {
+						if reqRedis.SubType == "CREATE" {
+
+						}
+					}
+
+					rdb.XAck(ctx, stream, groupName, message.ID)
+
+				}
+			}
+		}
+
+	}
+
+}
+============================================================================================================================================================================
+└── gateway/
+    ├── config/
+    │   └── redis.go
+============================================================================================================================================================================
+package config
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/go-redis/redis/v8"
+)
+
+func ConnectRedis(host, password string, port int) (rdb *redis.Client, err error) {
+
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%d", host, port),
+		Password: password,
+		DB:       0,
+		Username: "default",
+	})
+
+	ctx := context.Background()
+
+
+	_, err = rdb.Ping(ctx).Result()
+	if err != nil {
+		remark := fmt.Sprintf("error connect to redis %[1]v", err)
+		log.Println(remark)
+		return
+	}
+
+	return
+}
+
+============================================================================================================================================================================
+    ├── domain/
+    │   ├── post.go
+============================================================================================================================================================================
+package domain
+
+import (
+	"github.com/labstack/echo/v4"
+	"gw-heatlcare.com/model"
+)
+
+type PostUsecase interface {
+	Post(request model.RequestGeneral) (message, detail string, err error)
+}
+
+type PostHandler interface{
+	Post(c echo.Context) (err error)
+}
+============================================================================================================================================================================
+    │   └── redis.go
+============================================================================================================================================================================
+package domain
+
+import "gw-heatlcare.com/model"
+
+type RedisRepository interface {
+	RedisProducer(message model.RedisProducer) (err error)
+}
+============================================================================================================================================================================
+    ├── handler/
+    │   └── post_handler.go
+============================================================================================================================================================================
+package handler
+
+import (
+	"github.com/labstack/echo/v4"
+	"gw-heatlcare.com/domain"
+	"gw-heatlcare.com/model"
+)
+
+type postHandler struct {
+	postUsecase domain.PostUsecase
+}
+
+func PostHandler(postUsecae domain.PostUsecase) domain.PostHandler {
+	return &postHandler{postUsecase: postUsecae}
+}
+
+func (p *postHandler) Post(c echo.Context) (err error) {
+
+	var request model.RequestGeneral
+	var response model.ResponseSuccessPost
+	var responseErr model.ResponseErrorPost
+
+	if err := c.Bind(&request); err != nil {
+		responseErr.Message = "bad request"
+		responseErr.Detail = err.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	message, detail, err := p.postUsecase.Post(request)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	response.Message = message
+
+	return c.JSON(200, response)
+}
+
+============================================================================================================================================================================
+    ├── helper/
+    │   ├── map.go
+============================================================================================================================================================================
+package helper
+
+import "encoding/json"
+
+func MapToStruct(data map[string]interface{}, out interface{}) error {
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(bytes, out)
+}
+============================================================================================================================================================================
+    │   └── logger/
+    │       ├── callstack.go
+============================================================================================================================================================================
+package logger
+
+import "runtime"
+
+func GetCaller() (file, function string, line int) {
+	pc, file, line, _ := runtime.Caller(3)
+	function = runtime.FuncForPC(pc).Name()
+	return
+}
+
+
+============================================================================================================================================================================
+    │       └── logger.go
+============================================================================================================================================================================
+package logger
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"sync"
+
+	"time"
+
+	"github.com/sirupsen/logrus"
+)
+
+var Log *Logger
+var mu sync.Mutex
+
+type Fields logrus.Fields
+
+type Logger struct {
+	log *logrus.Entry
+	logrusBase *logrus.Logger
+
+}
+
+func (l *Logger) BaseLog(fields map[string]interface{}, data interface{}) (log *logrus.Entry) {
+	file, function, line := GetCaller()
+	log = l.log.WithFields(logrus.Fields{
+		"file":     file,
+		"line":     line,
+		"function": function,
+	}).WithFields(fields)
+	if data != nil {
+		payload, err := json.Marshal(data)
+		if err != nil {
+			log = log.WithField("data_error", err.Error())
+			return
+		}
+		log = log.WithField("data", string(payload))
+	}
+	return
+}
+
+func (l *Logger) Info(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Info(message)
+}
+func (l *Logger) Warn(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Warn(message)
+}
+func (l *Logger) Error(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Error(message)
+}
+func (l *Logger) Fatal(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Fatal(message)
+}
+func (l *Logger) Panic(fields map[string]interface{}, data interface{}, message string) {
+	l.BaseLog(fields, data).Panic(message)
+}
+
+func (l *Logger) SetFileOutput(file io.Writer) {
+	l.log.Logger.Out = file
+}
+
+func NewLogger(name string) {
+	l := logrus.New()
+	l.SetFormatter(&logrus.TextFormatter{
+		ForceColors:     true,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+	})
+	Log = &Logger{
+		log: l.WithField("case", name),
+		logrusBase: l,
+	}
+
+	go Log.dailyLogRotation(name)
+}
+
+func (l *Logger) dailyLogRotation(appName string) {
+	for {
+		l.rotateLogFile(appName)
+
+		// Tunggu sampai pukul 00:00:01 hari berikutnya
+		now := time.Now()
+		next := now.Add(24 * time.Hour).Truncate(24 * time.Hour).Add(time.Second)
+		time.Sleep(time.Until(next))
+	}
+}
+
+func (l *Logger) rotateLogFile(appName string) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	dateStr := time.Now().Format("2006-01-02")
+	filename := fmt.Sprintf("%s-%s.log", appName, dateStr)
+
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("Failed to create/open log file: %v\n", err)
+		return
+	}
+
+	
+	l.logrusBase.SetOutput(file)
+}
+
+============================================================================================================================================================================
+    ├── model/
+    │   ├── post_model.go
+============================================================================================================================================================================
+package model
+
+type RequestGeneral struct {
+	TrxType string      `json:"trx_type"`
+	SubType string      `json:"sub_type"`
+	Data    interface{} `json:"data"`
+}
+
+type ResponseSuccessPost struct {
+	Message string `json:"message"`
+}
+
+type ResponseErrorPost struct {
+	Detail  string `json:"detail"`
+	Message string `json:"message"`
+}
+
+============================================================================================================================================================================
+    │   └── redis_model.go
+============================================================================================================================================================================
+package model
+
+type RedisProducer struct {
+	TrxType string      `json:"trx_type"`
+	SubType string      `json:"sub_type"`
+	Data    interface{} `json:"data"`
+}
+
+============================================================================================================================================================================
+    ├── repository/
+    │   └── redis.go
+============================================================================================================================================================================
+package repository
+
+import (
+	"context"
+	"encoding/json"
+
+	"github.com/go-redis/redis/v8"
+	"gw-heatlcare.com/domain"
+	l "gw-heatlcare.com/helper/logger"
+	"gw-heatlcare.com/model"
+)
+
+type redisRepository struct {
+	rdb    *redis.Client
+	stream string
+}
+
+func RedisRepository(rdb *redis.Client, stream string) domain.RedisRepository {
+	return &redisRepository{rdb: rdb, stream: stream}
+}
+
+func (r *redisRepository) RedisProducer(message model.RedisProducer) (err error) {
+	ctx := context.Background()
+	msgJson, err := json.Marshal(message)
+	if err != nil {
+		remark := "error marshall message"
+		l.Log.Error(l.Fields{
+			"error": err.Error(),
+		}, message, remark)
+		return
+	}
+
+	err = r.rdb.XAdd(ctx, &redis.XAddArgs{
+		Stream: r.stream,
+		Values: map[string]interface{}{"data": string(msgJson)},
+	}).Err()
+	if err != nil {
+		remark := "error send redis stream"
+		l.Log.Error(l.Fields{
+			"error": err.Error(),
+		}, message, remark)
+		return
+	}
+
+	return
+}
+
+============================================================================================================================================================================
+    ├── usecase/
+    │   └── post_usecase.go
+============================================================================================================================================================================
+package usecase
+
+import (
+	"gw-heatlcare.com/domain"
+	l "gw-heatlcare.com/helper/logger"
+	"gw-heatlcare.com/model"
+)
+
+type postUsecase struct {
+	redisRepository domain.RedisRepository
+}
+
+func PostUsecase(redisRepository domain.RedisRepository) domain.PostUsecase {
+	return &postUsecase{redisRepository: redisRepository}
+}
+
+func (p *postUsecase) Post(request model.RequestGeneral) (message, detail string, err error) {
+	var reqProducer model.RedisProducer
+
+	reqProducer.TrxType = request.TrxType
+	reqProducer.SubType = request.SubType
+	reqProducer.Data = request.Data
+
+	err = p.redisRepository.RedisProducer(reqProducer)
+	if err != nil {
+		detail = err.Error()
+		message = "internal server error"
+		l.Log.Error(l.Fields{
+			"error": err.Error(),
+		}, nil, "error produce message")
+		return
+	}
+
+	message = "success post data"
+	return
+}
+
+============================================================================================================================================================================
+    ├── gw-health-2026-05-28.log
+    ├── gw-health-2026-05-29.log
+    ├── go.mod
+============================================================================================================================================================================
+module gw-heatlcare.com
+
+go 1.25.0
+
+require (
+	github.com/go-redis/redis/v8 v8.11.5
+	github.com/joho/godotenv v1.5.1
+	github.com/labstack/echo/v4 v4.15.2
+	github.com/sirupsen/logrus v1.9.4
+	github.com/swaggo/echo-swagger v1.5.2
+)
+
+require (
+	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/go-openapi/jsonpointer v0.19.6 // indirect
+	github.com/go-openapi/jsonreference v0.20.2 // indirect
+	github.com/go-openapi/spec v0.20.9 // indirect
+	github.com/go-openapi/swag v0.22.3 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
+	github.com/labstack/gommon v0.5.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/sv-tools/openapi v0.2.1 // indirect
+	github.com/swaggo/files/v2 v2.0.0 // indirect
+	github.com/swaggo/swag v1.16.2 // indirect
+	github.com/swaggo/swag/v2 v2.0.0-rc4 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasttemplate v1.2.2 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/tools v0.43.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+	sigs.k8s.io/yaml v1.3.0 // indirect
+)
+
+============================================================================================================================================================================
+    ├── go.sum
+============================================================================================================================================================================
+github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
+github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
+github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
+github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
+github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
+github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
+github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
+github.com/fsnotify/fsnotify v1.4.9 h1:hsms1Qyu0jgnwNXIxa+/V/PDsU6CfLf6CNO8H7IWoS4=
+github.com/fsnotify/fsnotify v1.4.9/go.mod h1:znqG4EE+3YCdAaPaxE2ZRY/06pZUdp0tY4IgpuI1SZQ=
+github.com/go-openapi/jsonpointer v0.19.3/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
+github.com/go-openapi/jsonpointer v0.19.5/go.mod h1:Pl9vOtqEWErmShwVjC8pYs9cog34VGT37dQOVbmoatg=
+github.com/go-openapi/jsonpointer v0.19.6 h1:eCs3fxoIi3Wh6vtgmLTOjdhSpiqphQ+DaPn38N2ZdrE=
+github.com/go-openapi/jsonpointer v0.19.6/go.mod h1:osyAmYz/mB/C3I+WsTTSgw1ONzaLJoLCyoi6/zppojs=
+github.com/go-openapi/jsonreference v0.20.0/go.mod h1:Ag74Ico3lPc+zR+qjn4XBUmXymS4zJbYVCZmcgkasdo=
+github.com/go-openapi/jsonreference v0.20.2 h1:3sVjiK66+uXK/6oQ8xgcRKcFgQ5KXa2KvnJRumpMGbE=
+github.com/go-openapi/jsonreference v0.20.2/go.mod h1:Bl1zwGIM8/wsvqjsOQLJ/SH+En5Ap4rVB5KVcIDZG2k=
+github.com/go-openapi/spec v0.20.9 h1:xnlYNQAwKd2VQRRfwTEI0DcK+2cbuvI/0c7jx3gA8/8=
+github.com/go-openapi/spec v0.20.9/go.mod h1:2OpW+JddWPrpXSCIX8eOx7lZ5iyuWj3RYR6VaaBKcWA=
+github.com/go-openapi/swag v0.19.5/go.mod h1:POnQmlKehdgb5mhVOsnJFsivZCEZ/vjK9gh66Z9tfKk=
+github.com/go-openapi/swag v0.19.15/go.mod h1:QYRuS/SOXUCsnplDa677K7+DxSOj6IPNl/eQntq43wQ=
+github.com/go-openapi/swag v0.22.3 h1:yMBqmnQ0gyZvEb/+KzuWZOXgllrXT4SADYbvDaXHv/g=
+github.com/go-openapi/swag v0.22.3/go.mod h1:UzaqsxGiab7freDnrUUra0MwWfN/q7tE4j+VcZ0yl14=
+github.com/go-redis/redis/v8 v8.11.5 h1:AcZZR7igkdvfVmQTPnu9WE37LRrO/YrBH5zWyjDC0oI=
+github.com/go-redis/redis/v8 v8.11.5/go.mod h1:gREzHqY1hg6oD9ngVRbLStwAWKhA0FEgq8Jd4h5lpwo=
+github.com/joho/godotenv v1.5.1 h1:7eLL/+HRGLY0ldzfGMeQkb7vMd0as4CfYvUVzLqw0N0=
+github.com/joho/godotenv v1.5.1/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
+github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=
+github.com/josharian/intern v1.0.0/go.mod h1:5DoeVV0s6jJacbCEi61lwdGj/aVlrQvzHFFd8Hwg//Y=
+github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
+github.com/kr/pretty v0.2.1 h1:Fmg33tUaq4/8ym9TJN1x7sLJnHVwhP33CNkpYV/7rwI=
+github.com/kr/pretty v0.2.1/go.mod h1:ipq/a2n7PKx3OHsz4KJII5eveXtPO4qwEXGdVfWzfnI=
+github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
+github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
+github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
+github.com/labstack/echo/v4 v4.15.2 h1:nnh2sCzGCVYnU+wCisMPiYapEg/QVo/gcI9ePKg5/T4=
+github.com/labstack/echo/v4 v4.15.2/go.mod h1:Xzp1Ns1RA2c9fY7nSgUJkpkUZGNbEIVHZbtbOMPktBI=
+github.com/labstack/gommon v0.5.0 h1:6VSQ2NOzsnEJ5W6+84E0RbcaDDmgB6NIAzWCczTEe6c=
+github.com/labstack/gommon v0.5.0/go.mod h1:Rzlg7HHy1maLfzBYGg9NZcVuz1sA68HHhLjhcEllYE0=
+github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
+github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e/go.mod h1:C1wdFJiN94OJF2b5HbByQZoLdCWB1Yqtg26g4irojpc=
+github.com/mailru/easyjson v0.7.6/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
+github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=
+github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
+github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
+github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
+github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw4=
+github.com/mattn/go-isatty v0.0.22/go.mod h1:ZXfXG4SQHsB/w3ZeOYbR0PrPwLy+n6xiMrJlRFqopa4=
+github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
+github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
+github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
+github.com/onsi/ginkgo v1.16.5 h1:8xi0RTUf59SOSfEtZMvwTvXYMzG4gV23XVHOZiXNtnE=
+github.com/onsi/ginkgo v1.16.5/go.mod h1:+E8gABHa3K6zRBolWtd+ROzc/U5bkGt0FwiG042wbpU=
+github.com/onsi/gomega v1.18.1 h1:M1GfJqGRrBrrGGsbxzV5dqM2U2ApXefZCQpkukxYRLE=
+github.com/onsi/gomega v1.18.1/go.mod h1:0q+aL8jAiMXy9hbwj2mr5GziHiwhAIQpFmmtT5hitRs=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/sirupsen/logrus v1.9.4 h1:TsZE7l11zFCLZnZ+teH4Umoq5BhEIfIzfRDZ1Uzql2w=
+github.com/sirupsen/logrus v1.9.4/go.mod h1:ftWc9WdOfJ0a92nsE2jF5u5ZwH8Bv2zdeOC42RjbV2g=
+github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
+github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
+github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
+github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
+github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
+github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
+github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
+github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
+github.com/sv-tools/openapi v0.2.1 h1:ES1tMQMJFGibWndMagvdoo34T1Vllxr1Nlm5wz6b1aA=
+github.com/sv-tools/openapi v0.2.1/go.mod h1:k5VuZamTw1HuiS9p2Wl5YIDWzYnHG6/FgPOSFXLAhGg=
+github.com/swaggo/echo-swagger v1.5.2 h1:KUM4QuEO1r/maky6Ybb9wS5MFEkJUpXwPbK4wwBe5Uk=
+github.com/swaggo/echo-swagger v1.5.2/go.mod h1:nt3Z+SlyzXNIQ4odFNlPzRdcNOFvkPJHf+t4sMLhNu4=
+github.com/swaggo/files/v2 v2.0.0 h1:hmAt8Dkynw7Ssz46F6pn8ok6YmGZqHSVLZ+HQM7i0kw=
+github.com/swaggo/files/v2 v2.0.0/go.mod h1:24kk2Y9NYEJ5lHuCra6iVwkMjIekMCaFq/0JQj66kyM=
+github.com/swaggo/swag v1.16.2 h1:28Pp+8DkQoV+HLzLx8RGJZXNGKbFqnuvSbAAtoxiY04=
+github.com/swaggo/swag v1.16.2/go.mod h1:6YzXnDcpr0767iOejs318CwYkCQqyGer6BizOg03f+E=
+github.com/swaggo/swag/v2 v2.0.0-rc4 h1:SZ8cK68gcV6cslwrJMIOqPkJELRwq4gmjvk77MrvHvY=
+github.com/swaggo/swag/v2 v2.0.0-rc4/go.mod h1:Ow7Y8gF16BTCDn8YxZbyKn8FkMLRUHekv1kROJZpbvE=
+github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
+github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
+github.com/valyala/fasttemplate v1.2.2 h1:lxLXG0uE3Qnshl9QyaK6XJxMXlQZELvChBOCmQD0Loo=
+github.com/valyala/fasttemplate v1.2.2/go.mod h1:KHLXt3tVN2HBp8eijSv/kGJopbvo7S+qRAEEKiv+SiQ=
+golang.org/x/crypto v0.50.0 h1:zO47/JPrL6vsNkINmLoo/PH1gcxpls50DNogFvB5ZGI=
+golang.org/x/crypto v0.50.0/go.mod h1:3muZ7vA7PBCE6xgPX7nkzzjiUq87kRItoJQM1Yo8S+Q=
+golang.org/x/mod v0.34.0 h1:xIHgNUUnW6sYkcM5Jleh05DvLOtwc6RitGHbDk4akRI=
+golang.org/x/mod v0.34.0/go.mod h1:ykgH52iCZe79kzLLMhyCUzhMci+nQj+0XkbXpNYtVjY=
+golang.org/x/net v0.53.0 h1:d+qAbo5L0orcWAr0a9JweQpjXF19LMXJE8Ey7hwOdUA=
+golang.org/x/net v0.53.0/go.mod h1:JvMuJH7rrdiCfbeHoo3fCQU24Lf5JJwT9W3sJFulfgs=
+golang.org/x/sync v0.20.0 h1:e0PTpb7pjO8GAtTs2dQ6jYa5BWYlMuX047Dco/pItO4=
+golang.org/x/sync v0.20.0/go.mod h1:9xrNwdLfx4jkKbNva9FpL6vEN7evnE43NNNJQ2LF3+0=
+golang.org/x/sys v0.43.0 h1:Rlag2XtaFTxp19wS8MXlJwTvoh8ArU6ezoyFsMyCTNI=
+golang.org/x/sys v0.43.0/go.mod h1:4GL1E5IUh+htKOUEOaiffhrAeqysfVGipDYzABqnCmw=
+golang.org/x/text v0.36.0 h1:JfKh3XmcRPqZPKevfXVpI1wXPTqbkE5f7JA92a55Yxg=
+golang.org/x/text v0.36.0/go.mod h1:NIdBknypM8iqVmPiuco0Dh6P5Jcdk8lJL0CUebqK164=
+golang.org/x/tools v0.43.0 h1:12BdW9CeB3Z+J/I/wj34VMl8X+fEXBxVR90JeMX5E7s=
+golang.org/x/tools v0.43.0/go.mod h1:uHkMso649BX2cZK6+RpuIPXS3ho2hZo4FVwfoy1vIk0=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
+gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
+gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
+gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 h1:uRGJdciOHaEIrze2W8Q3AKkepLTh2hOroT7a+7czfdQ=
+gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=
+gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
+gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
+gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+sigs.k8s.io/yaml v1.3.0 h1:a2VclLzOGrwOHDiV8EfBGhvjHvP46CtW5j6POvhYGGo=
+sigs.k8s.io/yaml v1.3.0/go.mod h1:GeOyir5tyXNByN85N/dRIT9es5UQNerPYEKK56eTBm8=
+
+============================================================================================================================================================================
+    └── main.go
+============================================================================================================================================================================
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
+	"github.com/labstack/echo/v4"
+	echoSwagger "github.com/swaggo/echo-swagger"
+	"gw-heatlcare.com/config"
+	"gw-heatlcare.com/handler"
+	l "gw-heatlcare.com/helper/logger"
+	"gw-heatlcare.com/repository"
+	"gw-heatlcare.com/usecase"
+)
+
+func main() {
+	l.NewLogger("gw-health")
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v\n", err)
+		panic(err)
+	}
+
+	// DB_NAME := os.Getenv("DB_NAME")
+	// DB_USER := os.Getenv("DB_USER")
+	// DB_HOST := os.Getenv("DB_HOST")
+	// DB_PORT, _ := strconv.Atoi(os.Getenv("DB_PORT"))
+	// DB_PASSWORD := os.Getenv("DB_PASSWORD")
+
+	REDIS_HOST := os.Getenv("REDIS_HOST")
+	REDIS_PORT, _ := strconv.Atoi(os.Getenv("REDIS_PORT"))
+	REDIS_PASSWORD := os.Getenv("REDIS_PASSWORD")
+
+	PORT, _ := strconv.Atoi(os.Getenv("PORT"))
+
+	url := fmt.Sprintf("0.0.0.0:%d", PORT)
+
+	rdb, err := config.ConnectRedis(REDIS_HOST, REDIS_PASSWORD, REDIS_PORT)
+
+	redisRepository := repository.RedisRepository(rdb, "HEALTHCARE:STREAM")
+
+	postUsecase := usecase.PostUsecase(redisRepository)
+
+	postHandler := handler.PostHandler(postUsecase)
+
+	e := echo.New()
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	e.POST("/api", postHandler.Post)
+
+	e.Start(url)
+
+}
+
+============================================================================================================================================================================
