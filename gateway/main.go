@@ -10,12 +10,12 @@ import (
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"gw-heatlcare.com/config"
+	_ "gw-heatlcare.com/docs"
 	"gw-heatlcare.com/handler"
 	"gw-heatlcare.com/helper"
 	l "gw-heatlcare.com/helper/logger"
 	"gw-heatlcare.com/repository"
 	"gw-heatlcare.com/usecase"
-	_"gw-heatlcare.com/docs"
 )
 
 func main() {
@@ -73,10 +73,12 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.POST("/api", postHandler.Post)
+	e.POST("/api", postHandler.Post, handler.Middleware)
+
 	e.GET("/api", coreHandler.GetCore, handler.Middleware)
 
 	e.POST("/login", userHandler.Login)
+	e.POST("/register", postHandler.PostCreateUser)
 
 	e.Start(url)
 

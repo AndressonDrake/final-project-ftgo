@@ -43,3 +43,31 @@ func (p *postHandler) Post(c echo.Context) (err error) {
 
 	return c.JSON(200, response)
 }
+
+func (p *postHandler) PostCreateUser(c echo.Context) (err error) {
+
+	var request model.RequestGeneral
+	var response model.ResponseSuccessPost
+	var responseErr model.ResponseErrorPost
+
+	if err := c.Bind(&request); err != nil {
+		responseErr.Message = "bad request"
+		responseErr.Detail = err.Error()
+		return c.JSON(400, responseErr)
+	}
+
+	email := ""
+
+	message, detail, err := p.postUsecase.Post(request, email)
+
+	responseErr.Detail = detail
+	responseErr.Message = message
+
+	if err != nil {
+		return c.JSON(500, responseErr)
+	}
+
+	response.Message = message
+
+	return c.JSON(200, response)
+}

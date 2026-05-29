@@ -11,4 +11,5 @@ type PostUsecase interface {
 
 type PostHandler interface {
 	Post(c echo.Context) (err error)
+	PostCreateUser(c echo.Context) (err error)
 }
