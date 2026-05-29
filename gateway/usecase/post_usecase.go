@@ -14,12 +14,13 @@ func PostUsecase(redisRepository domain.RedisRepository) domain.PostUsecase {
 	return &postUsecase{redisRepository: redisRepository}
 }
 
-func (p *postUsecase) Post(request model.RequestGeneral) (message, detail string, err error) {
+func (p *postUsecase) Post(request model.RequestGeneral,email string) (message, detail string, err error) {
 	var reqProducer model.RedisProducer
 
 	reqProducer.TrxType = request.TrxType
 	reqProducer.SubType = request.SubType
 	reqProducer.Data = request.Data
+	reqProducer.Email = email
 
 	err = p.redisRepository.RedisProducer(reqProducer)
 	if err != nil {

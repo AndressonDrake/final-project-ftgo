@@ -6,9 +6,9 @@ import (
 )
 
 type PostUsecase interface {
-	Post(request model.RequestGeneral) (message, detail string, err error)
+	Post(request model.RequestGeneral, email string) (message, detail string, err error)
 }
 
-type PostHandler interface{
+type PostHandler interface {
 	Post(c echo.Context) (err error)
 }

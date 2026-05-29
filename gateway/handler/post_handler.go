@@ -26,7 +26,9 @@ func (p *postHandler) Post(c echo.Context) (err error) {
 		return c.JSON(400, responseErr)
 	}
 
-	message, detail, err := p.postUsecase.Post(request)
+	email := c.Get("email").(string)
+
+	message, detail, err := p.postUsecase.Post(request, email)
 
 	responseErr.Detail = detail
 	responseErr.Message = message

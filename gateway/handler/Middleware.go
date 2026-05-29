@@ -32,7 +32,10 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		userID := claims["user_id"].(float64)
 
+		email := claims["email"].(string)
+
 		c.Set("user_id", userID)
+		c.Set("email", email)
 
 		return next(c)
 

@@ -31,6 +31,7 @@ func (p *paymentUsecase) Create(request model.CreatePayment) (err error) {
 	}
 
 	p.paymentRepository.Commit(tx)
+	
 
 	return
 }

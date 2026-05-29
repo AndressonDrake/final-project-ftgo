@@ -15,9 +15,9 @@ func (Role) TableName() string {
 }
 
 type Branch struct {
-	IDCabang  int    `gorm:"column:id_cabang;primaryKey;autoIncrement" json:"id_cabang"`
+	IDCabang   int    `gorm:"column:id_cabang;primaryKey;autoIncrement" json:"id_cabang"`
 	NamaCabang string `gorm:"column:nama_cabang;type:varchar(150)" json:"nama_cabang"`
-	Alamat    string `gorm:"column:alamat;type:text" json:"alamat"`
+	Alamat     string `gorm:"column:alamat;type:text" json:"alamat"`
 }
 
 func (Branch) TableName() string {
@@ -25,13 +25,13 @@ func (Branch) TableName() string {
 }
 
 type User struct {
-	IDUser    int    `gorm:"column:id_user;primaryKey;autoIncrement" json:"id_user"`
-	IDRole    int    `gorm:"column:id_role" json:"id_role"`
-	IDCabang  int    `gorm:"column:id_cabang" json:"id_cabang"`
-	Nama      string `gorm:"column:nama;type:varchar(150)" json:"nama"`
-	Email     string `gorm:"column:email;type:varchar(150);unique" json:"email"`
-	Password  string `gorm:"column:password;type:varchar(255)" json:"password"`
-	NoHP      string `gorm:"column:no_hp;type:varchar(20)" json:"no_hp"`
+	IDUser   int    `gorm:"column:id_user;primaryKey;autoIncrement" json:"id_user"`
+	IDRole   int    `gorm:"column:id_role" json:"id_role"`
+	IDCabang int    `gorm:"column:id_cabang" json:"id_cabang"`
+	Nama     string `gorm:"column:nama;type:varchar(150)" json:"nama"`
+	Email    string `gorm:"column:email;type:varchar(150);unique" json:"email"`
+	Password string `gorm:"column:password;type:varchar(255)" json:"password"`
+	NoHP     string `gorm:"column:no_hp;type:varchar(20)" json:"no_hp"`
 
 	Role   Role   `gorm:"foreignKey:IDRole;references:IDRole" json:"role"`
 	Branch Branch `gorm:"foreignKey:IDCabang;references:IDCabang" json:"branch"`
@@ -51,15 +51,15 @@ func (PatientStatus) TableName() string {
 }
 
 type Patient struct {
-	IDPatient      int       `gorm:"column:id_patient;primaryKey;autoIncrement" json:"id_patient"`
-	IDStatus       int       `gorm:"column:id_status" json:"id_status"`
-	Nama           string    `gorm:"column:nama;type:varchar(150)" json:"nama"`
-	NIK            string    `gorm:"column:nik;type:varchar(30);unique" json:"nik"`
-	TanggalLahir   time.Time `gorm:"column:tanggal_lahir;type:date" json:"tanggal_lahir"`
-	Gender         string    `gorm:"column:gender;type:varchar(20)" json:"gender"`
-	Alamat         string    `gorm:"column:alamat;type:text" json:"alamat"`
-	NoHP           string    `gorm:"column:no_hp;type:varchar(20)" json:"no_hp"`
-	GolonganDarah  string    `gorm:"column:golongan_darah;type:varchar(5)" json:"golongan_darah"`
+	IDPatient     int       `gorm:"column:id_patient;primaryKey;autoIncrement" json:"id_patient"`
+	IDStatus      int       `gorm:"column:id_status" json:"id_status"`
+	Nama          string    `gorm:"column:nama;type:varchar(150)" json:"nama"`
+	NIK           string    `gorm:"column:nik;type:varchar(30);unique" json:"nik"`
+	TanggalLahir  time.Time `gorm:"column:tanggal_lahir;type:date" json:"tanggal_lahir"`
+	Gender        string    `gorm:"column:gender;type:varchar(20)" json:"gender"`
+	Alamat        string    `gorm:"column:alamat;type:text" json:"alamat"`
+	NoHP          string    `gorm:"column:no_hp;type:varchar(20)" json:"no_hp"`
+	GolonganDarah string    `gorm:"column:golongan_darah;type:varchar(5)" json:"golongan_darah"`
 
 	Status PatientStatus `gorm:"foreignKey:IDStatus;references:IDStatus" json:"status"`
 }
@@ -82,10 +82,10 @@ func (Medicine) TableName() string {
 }
 
 type ICD10 struct {
-	IDICD         int    `gorm:"column:id_icd;primaryKey;autoIncrement" json:"id_icd"`
-	KodeICD       string `gorm:"column:kode_icd;type:varchar(20)" json:"kode_icd"`
-	NamaPenyakit  string `gorm:"column:nama_penyakit;type:varchar(200)" json:"nama_penyakit"`
-	Kategori      string `gorm:"column:kategori;type:varchar(150)" json:"kategori"`
+	IDICD        int    `gorm:"column:id_icd;primaryKey;autoIncrement" json:"id_icd"`
+	KodeICD      string `gorm:"column:kode_icd;type:varchar(20)" json:"kode_icd"`
+	NamaPenyakit string `gorm:"column:nama_penyakit;type:varchar(200)" json:"nama_penyakit"`
+	Kategori     string `gorm:"column:kategori;type:varchar(150)" json:"kategori"`
 }
 
 func (ICD10) TableName() string {
@@ -112,13 +112,13 @@ func (Appointment) TableName() string {
 }
 
 type MedicalRecord struct {
-	IDRecord        int    `gorm:"column:id_record;primaryKey;autoIncrement" json:"id_record"`
-	IDAppointment   int    `gorm:"column:id_appointment" json:"id_appointment"`
-	IDICD           int    `gorm:"column:id_icd" json:"id_icd"`
-	HasilLab        string `gorm:"column:hasil_lab;type:text" json:"hasil_lab"`
-	HasilRadiologi  string `gorm:"column:hasil_radiologi;type:text" json:"hasil_radiologi"`
-	Tindakan        string `gorm:"column:tindakan;type:text" json:"tindakan"`
-	Catatan         string `gorm:"column:catatan;type:text" json:"catatan"`
+	IDRecord       int    `gorm:"column:id_record;primaryKey;autoIncrement" json:"id_record"`
+	IDAppointment  int    `gorm:"column:id_appointment" json:"id_appointment"`
+	IDICD          int    `gorm:"column:id_icd" json:"id_icd"`
+	HasilLab       string `gorm:"column:hasil_lab;type:text" json:"hasil_lab"`
+	HasilRadiologi string `gorm:"column:hasil_radiologi;type:text" json:"hasil_radiologi"`
+	Tindakan       string `gorm:"column:tindakan;type:text" json:"tindakan"`
+	Catatan        string `gorm:"column:catatan;type:text" json:"catatan"`
 
 	Appointment Appointment `gorm:"foreignKey:IDAppointment;references:IDAppointment" json:"appointment"`
 	ICD10       ICD10       `gorm:"foreignKey:IDICD;references:IDICD" json:"icd10"`
@@ -129,11 +129,11 @@ func (MedicalRecord) TableName() string {
 }
 
 type Prescription struct {
-	IDResep      int    `gorm:"column:id_resep;primaryKey;autoIncrement" json:"id_resep"`
-	IDRecord     int    `gorm:"column:id_record" json:"id_record"`
-	IDObat       int    `gorm:"column:id_obat" json:"id_obat"`
-	Jumlah       int    `gorm:"column:jumlah" json:"jumlah"`
-	AturanPakai  string `gorm:"column:aturan_pakai;type:text" json:"aturan_pakai"`
+	IDResep     int    `gorm:"column:id_resep;primaryKey;autoIncrement" json:"id_resep"`
+	IDRecord    int    `gorm:"column:id_record" json:"id_record"`
+	IDObat      int    `gorm:"column:id_obat" json:"id_obat"`
+	Jumlah      int    `gorm:"column:jumlah" json:"jumlah"`
+	AturanPakai string `gorm:"column:aturan_pakai;type:text" json:"aturan_pakai"`
 
 	MedicalRecord MedicalRecord `gorm:"foreignKey:IDRecord;references:IDRecord" json:"medical_record"`
 	Medicine      Medicine      `gorm:"foreignKey:IDObat;references:IDObat" json:"medicine"`
@@ -144,11 +144,11 @@ func (Prescription) TableName() string {
 }
 
 type Payment struct {
-	IDPayment          int     `gorm:"column:id_payment;primaryKey;autoIncrement" json:"id_payment"`
-	IDAppointment      int     `gorm:"column:id_appointment" json:"id_appointment"`
-	Total              float64 `gorm:"column:total;type:decimal(12,2)" json:"total"`
-	MetodePembayaran   string  `gorm:"column:metode_pembayaran;type:varchar(50)" json:"metode_pembayaran"`
-	StatusPembayaran   string  `gorm:"column:status_pembayaran;type:varchar(50)" json:"status_pembayaran"`
+	IDPayment        int     `gorm:"column:id_payment;primaryKey;autoIncrement" json:"id_payment"`
+	IDAppointment    int     `gorm:"column:id_appointment" json:"id_appointment"`
+	Total            float64 `gorm:"column:total;type:decimal(12,2)" json:"total"`
+	MetodePembayaran string  `gorm:"column:metode_pembayaran;type:varchar(50)" json:"metode_pembayaran"`
+	StatusPembayaran string  `gorm:"column:status_pembayaran;type:varchar(50)" json:"status_pembayaran"`
 
 	Appointment Appointment `gorm:"foreignKey:IDAppointment;references:IDAppointment" json:"appointment"`
 }
@@ -158,13 +158,13 @@ func (Payment) TableName() string {
 }
 
 type DiseaseMonitoring struct {
-	IDMonitoring   int       `gorm:"column:id_monitoring;primaryKey;autoIncrement" json:"id_monitoring"`
-	IDICD          int       `gorm:"column:id_icd" json:"id_icd"`
-	Negara         string    `gorm:"column:negara;type:varchar(100)" json:"negara"`
-	TotalKasus     int       `gorm:"column:total_kasus" json:"total_kasus"`
-	TotalKematian  int       `gorm:"column:total_kematian" json:"total_kematian"`
-	TotalSembuh    int       `gorm:"column:total_sembuh" json:"total_sembuh"`
-	TanggalUpdate  time.Time `gorm:"column:tanggal_update;type:timestamp" json:"tanggal_update"`
+	IDMonitoring  int       `gorm:"column:id_monitoring;primaryKey;autoIncrement" json:"id_monitoring"`
+	IDICD         int       `gorm:"column:id_icd" json:"id_icd"`
+	Negara        string    `gorm:"column:negara;type:varchar(100)" json:"negara"`
+	TotalKasus    int       `gorm:"column:total_kasus" json:"total_kasus"`
+	TotalKematian int       `gorm:"column:total_kematian" json:"total_kematian"`
+	TotalSembuh   int       `gorm:"column:total_sembuh" json:"total_sembuh"`
+	TanggalUpdate time.Time `gorm:"column:tanggal_update;type:timestamp" json:"tanggal_update"`
 
 	ICD10 ICD10 `gorm:"foreignKey:IDICD;references:IDICD" json:"icd10"`
 }
@@ -186,10 +186,9 @@ func (HealthNews) TableName() string {
 	return "health_news"
 }
 
-
-
 type Consumer struct {
 	TrxType string          `json:"trx_type"`
 	SubType string          `json:"sub_type"`
 	Data    json.RawMessage `json:"data"`
+	Email   string          `json:"email"`
 }
